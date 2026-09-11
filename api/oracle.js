@@ -26,24 +26,26 @@ export default async function handler(req, res) {
       try {
         body = JSON.parse(body);
       } catch (e) {
-        body = { prompt: body };
+        body = { question: body };
       }
     }
 
-    let userPrompt = '';
-    if (body?.prompt) {
-      userPrompt = typeof body.prompt === 'string' ? body.prompt : JSON.stringify(body.prompt);
-    } else if (body?.contents?.[0]?.parts?.[0]?.text) {
-      userPrompt = body.contents[0].parts[0].text;
-    } else if (body?.message) {
-      userPrompt = body.message;
-    } else {
-      userPrompt = JSON.stringify(body || {});
-    }
+    // index.html에서 넘어온 타로 상담 데이터 조합
+    const q = body.question || '내담자의 전반적인 운세';
+    const c1 = body.card1 || '과거/기저 카드';
+    const c2 = body.card2 || '현재/행동 카드';
+    const c3 = body.card3 || '미래/결과 카드';
+    const user = body.userName || '내담자';
 
-    if (!userPrompt || userPrompt.trim() === '' || userPrompt === '{}') {
-      userPrompt = '타로 카드를 바탕으로 내담자에게 맞춘 깊이 있는 운세 해석을 작성해 주세요.';
-    }
+    const fullPrompt = `당신은 깊은 통찰력을 지닌 신비로운 마스터 타로 리더입니다.
+내담자 이름: ${user}
+내담자의 고민/질문: "${q}"
+뽑힌 3장의 타로 카드:
+1. 기저(원인): ${c1}
+2. 행동(전개): ${c2}
+3. 미래(결론): ${c3}
+
+위의 3장의 카드 상징과 내담자의 상황을 결합하여 가슴을 울리는 통찰력 있고 정성스러운 최종 신탁 판결문(Grand Synthesis)을 작성해 주세요.`;
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -56,7 +58,7 @@ export default async function handler(req, res) {
         contents: [
           {
             parts: [
-              { text: userPrompt }
+              { text: fullPrompt }
             ]
           }
         ]
