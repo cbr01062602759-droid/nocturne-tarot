@@ -100,7 +100,7 @@
     backface-visibility: hidden; border-radius: 6px;
   }
   .flip-front {
-    background: url('/cards/card_back.webp') center/cover no-repeat, #0f172a;
+    background: url('cards/card_back.webp') center/cover no-repeat, #0f172a;
     border: 1.2px solid rgba(197, 160, 89, 0.5); box-shadow: 0 4px 12px rgba(0,0,0,0.8);
   }
   .flip-back {
@@ -919,22 +919,26 @@
     });
   });
 
-  function safeSetCardImage(imgEl, cardData) {
-    if (!cardData || !cardData.files || cardData.files.length === 0) {
+function safeSetCardImage(imgEl, cardData) {
+  imgEl.onerror = null; // 초기화 (무한 재귀 호출 원천 차단)
+  if (!cardData || !cardData.files || cardData.files.length === 0) {
+    imgEl.src = '/cards/card_back.webp';
+    return;
+  }
+  let idx = 0;
+  function attempt() {
+    if (idx < cardData.files.length) {
+      imgEl.src = `/cards/${cardData.files[idx]}`;
+      idx++;
+    } else {
+      imgEl.onerror = null; // 대체 뒷면도 실패하면 무한 재시도 중단
       imgEl.src = '/cards/card_back.webp';
-      return;
     }
-    let idx = 0;
-    function attempt() {
-      if (idx < cardData.files.length) {
-        imgEl.src = `cards/${cardData.files[idx]}`;
-        idx++;
-      } else {
-        imgEl.src = '/cards/card_back.webp';
-      }
-    }
-    imgEl.onerror = attempt;
-    attempt();
+  }
+  imgEl.onerror = attempt; // onerror 이벤트를 attempt 함수에 연결
+  attempt(); // 즉시 첫 번째 카드 시도
+}
+
   }
 
   let isSpiritualPlaying = false;
@@ -1403,6 +1407,9 @@
      [하이브리드 듀얼 코어 실시간 신탁 렌더러]
      ========================================================================== */
   async function renderCompletedVerdict(item) {
+    // ▼ 빈 질문이거나 선택되지 않은 슬롯은 즉시 실행 중단
+    if (!item || !item.question || item.question.trim() === '') return;
+    
     const c1 = item.pickedCards[0].data;
     const c2 = item.pickedCards[1].data;
     const c3 = item.pickedCards[2].data;
