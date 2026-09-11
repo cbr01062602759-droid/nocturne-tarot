@@ -1,7 +1,13 @@
 {
   "functions": {
-    "api/*.js": {
-      "runtime": "@vercel/node"
+    "api/oracle.js": {
+      "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/oracle",
+      "destination": "/api/oracle.js"
+    }
+  ]
 }
