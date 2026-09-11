@@ -1,7 +1,8 @@
 {
-  "functions": {
-    "api/*.js": {
-      "runtime": "@vercel/node"
+  "rewrites": [
+    {
+      "source": "/api/oracle",
+      "destination": "/api/oracle.js"
     }
-  }
+  ]
 }
