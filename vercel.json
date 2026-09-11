@@ -1,13 +1,8 @@
 {
-  "functions": {
-    "api/oracle.js": {
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/oracle",
-      "destination": "/api/oracle.js"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ]
 }
