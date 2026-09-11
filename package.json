@@ -2,5 +2,7 @@
   "name": "nocturne-tarot",
   "version": "1.0.0",
   "type": "module",
-  "dependencies": {}
+  "dependencies": {
+    "@vercel/node": "^3.0.0"
+  }
 }
