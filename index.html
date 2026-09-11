@@ -100,7 +100,7 @@
     backface-visibility: hidden; border-radius: 6px;
   }
   .flip-front {
-    background: url('cards/card_back.webp') center/cover no-repeat, #0f172a;
+    background: url('/cards/card_back.webp') center/cover no-repeat, #0f172a;
     border: 1.2px solid rgba(197, 160, 89, 0.5); box-shadow: 0 4px 12px rgba(0,0,0,0.8);
   }
   .flip-back {
@@ -921,7 +921,7 @@
 
   function safeSetCardImage(imgEl, cardData) {
     if (!cardData || !cardData.files || cardData.files.length === 0) {
-      imgEl.src = 'cards/card_back.webp';
+      imgEl.src = '/cards/card_back.webp';
       return;
     }
     let idx = 0;
@@ -930,7 +930,7 @@
         imgEl.src = `cards/${cardData.files[idx]}`;
         idx++;
       } else {
-        imgEl.src = 'cards/card_back.webp';
+        imgEl.src = '/cards/card_back.webp';
       }
     }
     imgEl.onerror = attempt;
