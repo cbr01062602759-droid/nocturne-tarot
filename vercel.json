@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/oracle",
-      "destination": "/api/oracle.js"
-    }
-  ]
-}
