@@ -65,11 +65,14 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
+const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: 'Gemini API Error',
+    return res.status(200).json({
+      verdictNarrative: replyText,
+      oracle: replyText,
+      text: replyText,
+      candidates: data.candidates
+    });
         details: data.error?.message || JSON.stringify(data)
       });
     }
