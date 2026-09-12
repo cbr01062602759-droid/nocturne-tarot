@@ -1223,11 +1223,11 @@ function safeSetCardImage(imgEl, cardData) {
       </div>
       <div class="emotion-story-para">
         <strong>02. 다가올 미래의 거대한 파동</strong>
-        "${c2.text2}"
+       "${c2.text1 || c2.text2 || ''}"
       </div>
       <div class="emotion-story-para">
         <strong>03. 신탁이 가리키는 최종 결단의 열쇠</strong>
-        "${c3.text3}"
+       "${c3.text1 || c3.text3 || ''}"
       </div>
     `;
 
