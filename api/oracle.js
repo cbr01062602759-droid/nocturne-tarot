@@ -44,42 +44,64 @@ module.exports = async function handler(req, res) {
 2. 행동(전개): ${c2}
 3. 미래(결론): ${c3}
 
-위의 3장의 카드 상징과 내담자의 상황을 결합하여 가슴을 울리는 통찰력 있고 정성스러운 최종 신탁 판결문(Grand Synthesis)을 작성해 주세요.`;
+위의 3장의 카드 상징과 내담자의 상황을 결합하여 가슴을 울리는 통찰력 있고 정성스러운 최종 신탁 판결문(Grand Synthesis)을 작성해 주세요. 문단별로 깔끔하고 격조 높은 어조로 서술하세요.`;
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const requestPayload = {
+      contents: [
+        {
+          parts: [{ text: fullPrompt }]
+        }
+      ]
+    };
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: fullPrompt }
-            ]
-          }
-        ]
-      })
-    });
+    // 1순위: gemini-1.5-flash-latest (v1beta)
+    // 2순위: gemini-1.5-flash (v1)
+    // 3순위: gemini-pro (v1)
+    const candidateUrls = [
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`
+    ];
 
-    const data = await response.json();
+    let replyText = '';
+    let lastError = null;
 
-    if (!response.ok) {
-      return res.status(response.status).json({
+    for (const url of candidateUrls) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          replyText = data.candidates[0].content.parts[0].text;
+          break; // 성공 시 루프 탈출
+        } else {
+          lastError = data.error?.message || JSON.stringify(data);
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
+    }
+
+    if (!replyText) {
+      return res.status(500).json({
         error: 'Gemini API Error',
-        details: data.error?.message || JSON.stringify(data)
+        details: lastError || 'All Gemini model endpoints failed'
       });
     }
 
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
+    // index.html에서 어떤 키값으로 읽든 즉시 화면에 꽂히도록 모든 주요 키 매핑
     return res.status(200).json({
       verdictNarrative: replyText,
+      synthesis: replyText,
       oracle: replyText,
       text: replyText,
-      candidates: data.candidates
+      verdict: replyText,
+      result: replyText
     });
 
   } catch (error) {
@@ -88,4 +110,4 @@ module.exports = async function handler(req, res) {
       message: error.message
     });
   }
-}
+};
