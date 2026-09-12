@@ -1245,14 +1245,19 @@ function safeSetCardImage(imgEl, cardData) {
     const userName = document.getElementById('userName').value.trim();
 
     document.getElementById('rationalUserName').innerText = userName;
-    document.getElementById('rCardName1').innerText = c1.name;
-    document.getElementById('rCardText1').innerText = `"${c1.text1}"`;
+    const getCardDesc = (c, defaultText) => {
+  if (!c) return "";
+  return c.text1 || c.text2 || c.text3 || c.text || c.desc || c.meaning || c.keywords || defaultText || `${c.name}의 깊은 상징과 에너지가 흐르고 있습니다.`;
+};
 
-    document.getElementById('rCardName2').innerText = c2.name;
-    document.getElementById('rCardText2').innerText = `"${c2.text2}"`;
+document.getElementById('rCardName1').innerText = c1.name;
+document.getElementById('rCardText1').innerText = `"${getCardDesc(c1, c1.text1)}"`;
 
-    document.getElementById('rCardName3').innerText = c3.name;
-    document.getElementById('rCardText3').innerText = `"${c3.text3}"`;
+document.getElementById('rCardName2').innerText = c2.name;
+document.getElementById('rCardText2').innerText = `"${getCardDesc(c2, c2.text2)}"`;
+
+document.getElementById('rCardName3').innerText = c3.name;
+document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}"`;
 
     document.getElementById('rSynthesisBody').innerHTML = `
       <p style="margin: 0; line-height: 1.75; word-break: keep-all;">
