@@ -1,4 +1,7 @@
 {
-  "name": "nocturne-tarot-v8",
-  "version": "1.0.0"
+  "name": "nocturne-tarot",
+  "version": "1.0.0",
+  "dependencies": {
+    "@vercel/node": "^3.0.0"
+  }
 }
