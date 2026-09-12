@@ -1512,7 +1512,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const response = await fetch('/api/oracle.js', {
+      const response = await fetch('/api/oracle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
