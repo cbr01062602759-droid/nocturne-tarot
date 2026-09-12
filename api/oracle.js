@@ -30,7 +30,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // index.html에서 넘어온 타로 상담 데이터 조합
     const q = body.question || '내담자의 전반적인 운세';
     const c1 = body.card1 || '과거/기저 카드';
     const c2 = body.card2 || '현재/행동 카드';
@@ -65,14 +64,11 @@ export default async function handler(req, res) {
       })
     });
 
-const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data = await response.json();
 
-    return res.status(200).json({
-      verdictNarrative: replyText,
-      oracle: replyText,
-      text: replyText,
-      candidates: data.candidates
-    });
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: 'Gemini API Error',
         details: data.error?.message || JSON.stringify(data)
       });
     }
@@ -80,8 +76,9 @@ const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     return res.status(200).json({
-      text: replyText,
+      verdictNarrative: replyText,
       oracle: replyText,
+      text: replyText,
       candidates: data.candidates
     });
 
