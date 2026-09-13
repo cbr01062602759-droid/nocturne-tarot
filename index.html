@@ -1497,10 +1497,10 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       </div>
     `;
 
-    document.getElementById('qSacredVerdictBody').innerHTML = `<span style="color:#dfba73; font-weight:bold;">✦ 녹턴 지능형 신탁관이 사연의 파동을 해체하여 1:1 맞춤 결단 지침을 직조 중입니다...</span>`;
-    document.getElementById('qTableBase').innerText = `${c1.name} — 심층 조율 중...`;
-    document.getElementById('qTableAction').innerText = `${c2.name} — 심층 조율 중...`;
-    document.getElementById('qTableFuture').innerText = `${c3.name} — 심층 조율 중...`;
+    document.getElementById('qSacredVerdictBody').innerHTML = `<span style="color:#dfba73; font-weight:bold;">✦ 심연의 무의식 궤적을 해독하며, 봉인된 신탁을 열어가는 중입니다...</span>`;
+    document.getElementById('qTableBase').innerText = `${c1.name} - 원형 해독 중...`;
+    document.getElementById('qTableAction').innerText = `${c2.name} - 원형 해독 중...`;
+    document.getElementById('qTableFuture').innerText = `${c3.name} - 원형 해독 중...`;
 
     const verdictBox = document.getElementById('questionVerdictBox');
     verdictBox.style.display = 'block';
@@ -1510,7 +1510,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const response = await fetch('/api/oracle', {
         method: 'POST',
