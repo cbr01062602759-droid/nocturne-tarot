@@ -1,62 +1,73 @@
 export default async function handler(req, res) {
-  // CORS 및 호출 권한 허용 설정
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  // 브라우저 사전 통신(OPTIONS) 즉시 통과
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // POST 요청만 처리
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    // 프론트엔드에서 보낸 prompt 또는 body 데이터 수신
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const promptText = body?.prompt || body?.text || JSON.stringify(body);
-
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다.' });
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not configured.' });
     }
 
-    // Google Gemini 1.5 Flash 호출
-   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+    const { question, c1, c2, c3, userName } = req.body;
+
+    const systemInstruction = `당신은 칼 융의 분석심리학과 정통 카발라 타로의 비의를 융합한 심층 신탁 나침반 'NOCTURNE COMPASS'의 마스터 지능체입니다.
+[지침]
+1. 사연자의 닉네임(${userName || '내담자'})과 사연의 전후 맥락(상실감, 비대칭 권력관계, 승진 누락, 질투, 심리적 기저)을 소름 돋을 정도로 냉철하고 정확하게 파악하십시오. 절대 사연의 사실관계를 왜곡하거나 부적절한 축하 등 엉뚱한 소리를 하지 마십시오.
+2. 미사여구와 흔한 인사말(안녕하세요, 안타깝습니다 등)은 일체 배제하고, 품격 있고 날카로운 문체로 본질을 꿰뚫으십시오.
+3. 반드시 아래 JSON 형식으로만 순수하게 출력하십시오. 마크다운 코드블록(\`\`\`json 등)은 붙이지 마십시오:
+{
+  "verdictNarrative": "질문 전체를 관통하는 칼 융 심층 심리학 기반의 종합 실전 결단 지침 (3~4문장의 밀도 높은 통찰)",
+  "baseAnalysis": "첫 번째 카드가 짚어내는 내면 기저 및 무의식 병목 해독 (2~3문장)",
+  "actionAnalysis": "두 번째 카드가 제시하는 현실 돌파 및 행동 규범 (2~3문장)",
+  "futureAnalysis": "세 번째 카드가 예고하는 인과적 미래 결실 궤적 (2~3문장)"
+}`;
+
+    const promptText = `[내담자 사연/질문]: ${question}
+[선택된 원형 카드 3장]:
+1. 기저/원인: ${c1.name}
+2. 대안/행동: ${c2.name}
+3. 결실/미래: ${c3.name}
+
+위 사연과 카드를 해독하여 지정된 JSON으로만 회신하십시오.`;
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: promptText }]
-          }
-        ]
+        contents: [{ parts: [{ text: promptText }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
       })
     });
 
     const data = await response.json();
-
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error?.message || 'Gemini API 호출 중 오류가 발생했습니다.'
-      });
+      return res.status(response.status).json({ error: data.error?.message || 'Gemini API Error' });
     }
 
-    // 신탁 응답 추출
-    const oracleResult =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      '신탁의 기운을 해석하는 중 응답을 얻지 못했습니다.';
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
 
-    return res.status(200).json({ text: oracleResult });
+    return res.status(200).json(parsed);
+
   } catch (error) {
-    return res.status(500).json({ error: error.message || '서버 내부 오류가 발생했습니다.' });
+    console.error("Oracle API Error:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
