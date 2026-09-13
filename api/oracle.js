@@ -1,3 +1,5 @@
+const https = require('https');
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -36,7 +38,7 @@ module.exports = async function handler(req, res) {
     const c3 = body?.card3 || '결과 카드';
     const user = body?.userName || '내담자';
 
-    const prompt = `당신은 깊은 통찰력을 지닌 신비로운 마스터 타로 리더입니다.
+    const promptText = `당신은 깊은 통찰력을 지닌 신비로운 마스터 타로 리더입니다.
 내담자 이름: ${user}
 내담자의 고민: "${q}"
 뽑힌 3장의 타로 카드:
@@ -44,28 +46,48 @@ module.exports = async function handler(req, res) {
 2. 행동: ${c2}
 3. 미래: ${c3}
 
-위 3장의 카드 상징과 내담자의 상황을 융합하여 마음을 울리는 깊이 있는 최종 신탁 판결문을 완성해 주세요.`;
+위 3장의 카드 상징과 내담자의 상황을 융합하여 마음을 울리는 깊이 있는 최종 신탁 판결문을 작성해 주세요.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const apiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+    const payload = JSON.stringify({
+      contents: [{ parts: [{ text: promptText }] }]
     });
 
-    const data = await apiRes.json();
+    const options = {
+      hostname: 'generativelanguage.googleapis.com',
+      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
 
-    if (!apiRes.ok) {
-      return res.status(apiRes.status).json({
+    const apiResult = await new Promise((resolve, reject) => {
+      const apiReq = https.request(options, (apiRes) => {
+        let resData = '';
+        apiRes.on('data', (chunk) => { resData += chunk; });
+        apiRes.on('end', () => {
+          try {
+            resolve({ statusCode: apiRes.statusCode, data: JSON.parse(resData) });
+          } catch (err) {
+            reject(new Error('JSON parse error: ' + resData));
+          }
+        });
+      });
+
+      apiReq.on('error', (e) => reject(e));
+      apiReq.write(payload);
+      apiReq.end();
+    });
+
+    if (apiResult.statusCode !== 200) {
+      return res.status(apiResult.statusCode).json({
         error: 'Gemini API Error',
-        details: data.error?.message || JSON.stringify(data)
+        details: apiResult.data.error?.message || JSON.stringify(apiResult.data)
       });
     }
 
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const reply = apiResult.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     return res.status(200).json({
       verdictNarrative: reply,
