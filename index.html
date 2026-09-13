@@ -1506,37 +1506,42 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     verdictBox.style.display = 'block';
     verdictBox.scrollIntoView({ behavior: 'smooth' });
 
-    let finalSwot = null;
+   // [캐싱 적용] 이미 수신한 신탁이 있다면 재요청 없이 0초 만에 즉시 복원
+        const cacheKey = `swot_cache_round_${currentVipRoundIndex}`;
+        let finalSwot = window[cacheKey] || null;
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+        if (!finalSwot) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const response = await fetch('/api/oracle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          question: item.question,
-          tier: currentSelectedTier,
-          card1: c1.name,
-          card2: c2.name,
-          card3: c3.name,
-          userName: userName
-        })
-      });
+            const response = await fetch('/api/oracle', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                question: item.question,
+                tier: currentSelectedTier,
+                card1: c1.name,
+                card2: c2.name,
+                card3: c3.name,
+                userName: userName
+              })
+            });
 
-      clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-      if (response.ok) {
-        const aiData = await response.json();
-        if (aiData.verdictNarrative) {
-          finalSwot = aiData;
+            if (response.ok) {
+              const aiData = await response.json();
+              if (aiData.verdictNarrative) {
+                finalSwot = aiData;
+                window[cacheKey] = aiData; // 수신된 명문장을 브라우저 메모리에 즉시 박제
+              }
+            }
+          } catch (err) {
+            console.warn("백엔드 통신 지연 또는 요청 에러. 원형 안전망으로 전환합니다.");
+          }
         }
-      }
-    } catch (err) {
-      console.warn("백엔드 통신 지연 또는 로컬 환경. 원형 안전망으로 전환합니다.");
-    }
 
     if (!finalSwot) {
       finalSwot = getFallbackInterpretation(item.question, c1, c2, c3, userName);
