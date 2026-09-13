@@ -1,7 +1,6 @@
-const https = require('https');
-
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+export default async function handler(req, res) {
+  // CORS 및 호출 권한 허용 설정
+  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
@@ -9,98 +8,55 @@ module.exports = async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
+  // 브라우저 사전 통신(OPTIONS) 즉시 통과
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // POST 요청만 처리
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is missing' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        body = { question: body };
-      }
+    // 프론트엔드에서 보낸 prompt 또는 body 데이터 수신
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const promptText = body?.prompt || body?.text || JSON.stringify(body);
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다.' });
     }
 
-    const q = body?.question || '내담자의 고민';
-    const c1 = body?.card1 || '기저 카드';
-    const c2 = body?.card2 || '행동 카드';
-    const c3 = body?.card3 || '결과 카드';
-    const user = body?.userName || '내담자';
-
-    const promptText = `당신은 깊은 통찰력을 지닌 신비로운 마스터 타로 리더입니다.
-내담자 이름: ${user}
-내담자의 고민: "${q}"
-뽑힌 3장의 타로 카드:
-1. 기저: ${c1}
-2. 행동: ${c2}
-3. 미래: ${c3}
-
-위 3장의 카드 상징과 내담자의 상황을 융합하여 마음을 울리는 깊이 있는 최종 신탁 판결문을 작성해 주세요.`;
-
-    const payload = JSON.stringify({
-      contents: [{ parts: [{ text: promptText }] }]
-    });
-
-    const options = {
-      hostname: 'generativelanguage.googleapis.com',
-      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    // Google Gemini 1.5 Flash 호출
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(geminiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload)
-      }
-    };
-
-    const apiResult = await new Promise((resolve, reject) => {
-      const apiReq = https.request(options, (apiRes) => {
-        let resData = '';
-        apiRes.on('data', (chunk) => { resData += chunk; });
-        apiRes.on('end', () => {
-          try {
-            resolve({ statusCode: apiRes.statusCode, data: JSON.parse(resData) });
-          } catch (err) {
-            reject(new Error('JSON parse error: ' + resData));
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: promptText }]
           }
-        });
-      });
-
-      apiReq.on('error', (e) => reject(e));
-      apiReq.write(payload);
-      apiReq.end();
+        ]
+      })
     });
 
-    if (apiResult.statusCode !== 200) {
-      return res.status(apiResult.statusCode).json({
-        error: 'Gemini API Error',
-        details: apiResult.data.error?.message || JSON.stringify(apiResult.data)
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || 'Gemini API 호출 중 오류가 발생했습니다.'
       });
     }
 
-    const reply = apiResult.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // 신탁 응답 추출
+    const oracleResult =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      '신탁의 기운을 해석하는 중 응답을 얻지 못했습니다.';
 
-    return res.status(200).json({
-      verdictNarrative: reply,
-      synthesis: reply,
-      oracle: reply,
-      text: reply,
-      verdict: reply
-    });
-
-  } catch (err) {
-    return res.status(500).json({
-      error: 'Execution Error',
-      message: err.message
-    });
+    return res.status(200).json({ text: oracleResult });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || '서버 내부 오류가 발생했습니다.' });
   }
-};
+}
