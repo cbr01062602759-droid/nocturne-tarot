@@ -1520,7 +1520,9 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
               headers: { 'Content-Type': 'application/json' },
               signal: controller.signal,
               body: JSON.stringify({
-                question: item.question,
+               question: (item.question && item.question.trim().length > 0) 
+  ? item.question 
+  : "내담자가 미처 언어화하지 못한 현재 무의식의 가장 시급한 당면 과제와 운명적 돌파구",
                 tier: currentSelectedTier,
                 card1: c1.name,
                 card2: c2.name,
