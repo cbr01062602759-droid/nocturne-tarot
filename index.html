@@ -1560,8 +1560,8 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       const nextNum = vipRoundsData[currentVipRoundIndex + 1].num;
       nextBtn.innerText = `다음 질문 (문항 0${nextNum}) 신탁 제단으로 이동 ▶`;
     } else {
-      nextBtn.innerText = `✦ 전 문항 직접 선택 완수 : 최종 종합 분석 열람 (총 ${totalCount}장) ▶ ✦`;
-    }
+  nextBtn.innerHTML = '✦ 전 문항 심층 신탁 완수 : 마스터 종합 결단 나침반 열람 ▶ ✦';
+}
   }
 
   function goToNextVipRound() {
