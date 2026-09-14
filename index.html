@@ -1548,9 +1548,9 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     }
 
     document.getElementById('qSacredVerdictBody').innerHTML = finalSwot.verdictNarrative;
-    document.getElementById('qTableBase').innerText = `${c1.name} — ${finalSwot.baseAnalysis}`;
-    document.getElementById('qTableAction').innerText = `${c2.name} — ${finalSwot.actionAnalysis}`;
-    document.getElementById('qTableFuture').innerText = `${c3.name} — ${finalSwot.futureAnalysis}`;
+    document.getElementById('qTableBase').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c1.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.baseAnalysis}</span>`;
+        document.getElementById('qTableAction').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c2.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.actionAnalysis}</span>`;
+        document.getElementById('qTableFuture').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c3.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.futureAnalysis}</span>`;
 
     const isLast = (currentVipRoundIndex === vipRoundsData.length - 1);
     const nextBtn = document.getElementById('nextRoundBtn');
