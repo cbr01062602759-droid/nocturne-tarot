@@ -1734,6 +1734,78 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       setTimeout(() => { lightboxImg.src = ''; }, 260);
     });
   });
+ // 1. 신탁 세션 박제 (로컬 스토리지 보존 및 안내 호출)
+  function freezeAndSaveSession() {
+    try {
+      const activeData = window.__CURRENT_NOCTURNE_SESSION__ || {
+        savedAt: new Date().toLocaleString(),
+        note: "녹턴 컴퍼스 신탁 완료 기록"
+      };
+      
+      localStorage.setItem("NOCTURNE_ARCHIVE_LATEST", JSON.stringify(activeData));
+      showToast("✦ 모든 질문과 신탁의 궤적이 안전하게 박제되었습니다.");
+      triggerPwaGuide();
+    } catch (err) {
+      alert("저장 공간 설정을 확인해 주십시오.");
+    }
+  }
+
+  // 2. 모바일 기종별 홈 화면 추가 안내
+  function triggerPwaGuide() {
+    const banner = document.getElementById("pwaGuideBanner");
+    if (!banner) return;
+    const guideText = document.getElementById("guidePlatformText");
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (isIOS) {
+      guideText.innerHTML = "하단 <b>[공유(↑)]</b> 터치 후 <b>[홈 화면에 추가(+)]</b>를 누르면 앱처럼 설치됩니다.";
+    } else {
+      guideText.innerHTML = "우측 상단 <b>[더보기(⋮)]</b> 터치 후 <b>[앱 설치]</b> 또는 <b>[홈 화면에 추가]</b>를 누르세요.";
+    }
+    banner.style.display = "flex";
+  }
+
+  function closePwaGuide() {
+    const banner = document.getElementById("pwaGuideBanner");
+    if (banner) banner.style.display = "none";
+  }
+
+  // 3. 토스트 메시지 함수
+  function showToast(msg) {
+    const t = document.getElementById("ncToast");
+    if (!t) return;
+    t.innerText = msg;
+    t.style.opacity = "1";
+    t.style.transform = "translateX(-50%) translateY(0)";
+    setTimeout(() => {
+      t.style.opacity = "0";
+      t.style.transform = "translateX(-50%) translateY(20px)";
+    }, 2500);
+  }
 </script>
+ <!-- [녹턴 컴퍼스] 모바일 최적화 박제 & 홈 추가 안내 바 -->
+  <footer class="master-footer mobile-optimized" style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 600px;">
+    <!-- 원클릭 영구 박제 버튼 -->
+    <button type="button" class="btn-freeze" onclick="freezeAndSaveSession()" style="background: linear-gradient(180deg, #d4b276 0%, #a38244 100%); color: #090c14; font-weight: 700; padding: 1.1rem; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 18px rgba(212, 178, 118, 0.25);">
+      ✦ 이 신탁의 전 궤적 그대로 박제(저장)하기
+    </button>
+    
+    <!-- 전체 복기 상단 이동 버튼 -->
+    <button type="button" class="btn-rewind" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(212, 178, 118, 0.25); color: #8e9bb0; padding: 0.9rem; border-radius: 10px; cursor: pointer; font-size: 0.9rem;">
+      ▲ 나의 질문과 카드 궤적 처음부터 다시 읽기
+    </button>
+  </footer>
+
+  <!-- 홈 화면 추가 유도 안내 배너 (기본 숨김) -->
+  <div id="pwaGuideBanner" style="display: none; margin: 1.5rem 0; padding: 1rem 1.2rem; background: rgba(212, 178, 118, 0.08); border: 1px dashed rgba(212, 178, 118, 0.4); border-radius: 10px; justify-content: space-between; align-items: center; color: #e6ebf5; width: 100%; max-width: 600px; box-sizing: border-box;">
+    <div style="text-align: left;">
+      <strong style="font-size: 0.9rem; color: #d4b276; display: block; margin-bottom: 0.25rem;">✦ 스마트폰 홈 화면에 앱으로 보관하기</strong>
+      <p id="guidePlatformText" style="font-size: 0.8rem; margin: 0; color: #8e9bb0;">브라우저 메뉴에서 '홈 화면에 추가'를 누르시면 앱처럼 열어보실 수 있습니다.</p>
+    </div>
+    <button type="button" onclick="closePwaGuide()" style="background: transparent; border: none; color: #8e9bb0; font-size: 1.2rem; cursor: pointer; padding: 0.3rem;">✕</button>
+  </div>
+
+  <!-- 토스트 알림창 요소 -->
+  <div id="ncToast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(18, 24, 38, 0.95); border: 1px solid #d4b276; color: #f3e5c8; padding: 0.8rem 1.4rem; border-radius: 999px; font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 9999; white-space: nowrap;"></div>
 </body>
 </html>
