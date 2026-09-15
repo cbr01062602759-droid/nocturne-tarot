@@ -1776,7 +1776,33 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
   function closePwaGuide() {
     const banner = document.getElementById("pwaGuideBanner");
     if (banner) banner.style.display = "none";
-  }   
+  }
+ // 박제된 기록을 열어보는 열람실 함수
+  function openArchiveModal() {
+    const raw = localStorage.getItem("NOCTURNE_ARCHIVE_LATEST");
+    if (!raw) {
+      alert("✦ 보관된 최근 신탁 기록이 없습니다.\n신탁을 완료하신 후 '박제(저장)하기'를 눌러주세요.");
+      return;
+    }
+    
+    try {
+      const data = JSON.parse(raw);
+      const viewer = document.getElementById("archiveModal");
+      const contentBox = document.getElementById("archiveModalContent");
+      const dateBox = document.getElementById("archiveModalDate");
+      
+      dateBox.innerText = "기록 일시 : " + (data.savedAt || "미상");
+      contentBox.innerText = data.content || "저장된 내용이 없습니다.";
+      viewer.style.display = "flex";
+    } catch(e) {
+      alert("기록을 불러오는 중 오류가 발생했습니다.");
+    }
+  }
+
+  function closeArchiveModal() {
+    const viewer = document.getElementById("archiveModal");
+    if (viewer) viewer.style.display = "none";
+  }
 </script>
  <!-- [녹턴 컴퍼스] 모바일 최적화 박제 & 홈 추가 안내 바 -->
   <footer class="master-footer mobile-optimized" style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 600px;">
@@ -1802,5 +1828,25 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
 
   <!-- 토스트 알림창 요소 -->
   <div id="ncToast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(18, 24, 38, 0.95); border: 1px solid #d4b276; color: #f3e5c8; padding: 0.8rem 1.4rem; border-radius: 999px; font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 9999; white-space: nowrap;"></div>
+<!-- 상단 또는 하단에서 언제든 열람 가능한 복기 버튼 -->
+  <div style="width: 100%; max-width: 600px; margin: 1.5rem auto; text-align: center;">
+    <button type="button" onclick="openArchiveModal()" style="background: rgba(212, 178, 118, 0.12); border: 1px solid rgba(212, 178, 118, 0.4); color: #d4b276; padding: 0.8rem 1.4rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">
+      📜 최근 박제된 신탁 기록 복기하기
+    </button>
+  </div>
+
+  <!-- 박제 기록 열람 서책 모달 (팝업창) -->
+  <div id="archiveModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: #0d121d; border: 1px solid #d4b276; border-radius: 12px; width: 100%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+      <div style="padding: 1.2rem; border-bottom: 1px solid rgba(212, 178, 118, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="color: #f3e5c8; margin: 0; font-size: 1.1rem;">✦ 심층 무의식 신탁 궤적록</h3>
+          <span id="archiveModalDate" style="color: #8e9bb0; font-size: 0.75rem;"></span>
+        </div>
+        <button type="button" onclick="closeArchiveModal()" style="background: transparent; border: none; color: #d4b276; font-size: 1.5rem; cursor: pointer;">✕</button>
+      </div>
+      <div id="archiveModalContent" style="padding: 1.5rem; color: #e6ebf5; font-size: 0.9rem; line-height: 1.7; overflow-y: auto; white-space: pre-wrap; word-break: break-word;"></div>
+    </div>
+  </div> 
 </body>
 </html>
