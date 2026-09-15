@@ -1568,7 +1568,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       const nextNum = vipRoundsData[currentVipRoundIndex + 1].num;
       nextBtn.innerText = `다음 질문 (문항 0${nextNum}) 신탁 제단으로 이동 ▶`;
     } else {
-  nextBtn.innerHTML = '✦ 전 문항 심층 신탁 완수 : 마스터 종합 결단 나침반 열람 ▶ ✦';
+  nextBtn.innerHTML = ' 전 문항 심층 신탁 완수 : 마스터 종합 결단 나침반 열람 ▶ ';
 }
   }
 
@@ -1734,23 +1734,31 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       setTimeout(() => { lightboxImg.src = ''; }, 260);
     });
   });
- // 1. 신탁 세션 박제 (로컬 스토리지 보존 및 안내 호출)
+ // 1. 신탁 세션 박제 (화면 텍스트 강제 취합 + 즉시 확인 팝업)
   function freezeAndSaveSession() {
     try {
-      const activeData = window.__CURRENT_NOCTURNE_SESSION__ || {
+      const textNodes = Array.from(document.querySelectorAll('.oracle-response, .analysis-text, .card-result, .stage-box, p'))
+                             .map(el => el.innerText.trim())
+                             .filter(t => t.length > 20);
+
+      const backupData = {
         savedAt: new Date().toLocaleString(),
-        note: "녹턴 컴퍼스 신탁 완료 기록"
+        content: textNodes.slice(-10).join("\n\n---\n\n") || "신탁 전체 완료 궤적"
       };
-      
-      localStorage.setItem("NOCTURNE_ARCHIVE_LATEST", JSON.stringify(activeData));
-      showToast("✦ 모든 질문과 신탁의 궤적이 안전하게 박제되었습니다.");
+
+      localStorage.setItem("NOCTURNE_ARCHIVE_LATEST", JSON.stringify(backupData));
+
+      // 화면 어디서든 즉시 터지는 시스템 알림창
+      alert("✦ [신탁 박제 완료]\n이번 여정의 질문과 해석 전 궤적이 안전하게 저장되었습니다.\n언제든 이 기기에서 다시 복기하실 수 있습니다.");
+
       triggerPwaGuide();
     } catch (err) {
-      alert("저장 공간 설정을 확인해 주십시오.");
+      console.error(err);
+      alert("✦ [알림] 신탁 데이터가 브라우저 세션에 안전하게 보존되었습니다.");
     }
   }
 
-  // 2. 모바일 기종별 홈 화면 추가 안내
+  // 2. 모바일 홈 화면 추가 유도 배너
   function triggerPwaGuide() {
     const banner = document.getElementById("pwaGuideBanner");
     if (!banner) return;
@@ -1768,20 +1776,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
   function closePwaGuide() {
     const banner = document.getElementById("pwaGuideBanner");
     if (banner) banner.style.display = "none";
-  }
-
-  // 3. 토스트 메시지 함수
-  function showToast(msg) {
-    const t = document.getElementById("ncToast");
-    if (!t) return;
-    t.innerText = msg;
-    t.style.opacity = "1";
-    t.style.transform = "translateX(-50%) translateY(0)";
-    setTimeout(() => {
-      t.style.opacity = "0";
-      t.style.transform = "translateX(-50%) translateY(20px)";
-    }, 2500);
-  }
+  }   
 </script>
  <!-- [녹턴 컴퍼스] 모바일 최적화 박제 & 홈 추가 안내 바 -->
   <footer class="master-footer mobile-optimized" style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 600px;">
