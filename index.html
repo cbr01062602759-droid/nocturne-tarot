@@ -1805,17 +1805,20 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
   }
 </script>
  <!-- [녹턴 컴퍼스] 모바일 최적화 박제 & 홈 추가 안내 바 -->
-  <footer class="master-footer mobile-optimized" style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 600px;">
-    <!-- 원클릭 영구 박제 버튼 -->
-    <button type="button" class="btn-freeze" onclick="freezeAndSaveSession()" style="background: linear-gradient(180deg, #d4b276 0%, #a38244 100%); color: #090c14; font-weight: 700; padding: 1.1rem; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 18px rgba(212, 178, 118, 0.25);">
-      ✦ 이 신탁의 전 궤적 그대로 박제(저장)하기
-    </button>
-    
-    <!-- 전체 복기 상단 이동 버튼 -->
-    <button type="button" class="btn-rewind" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(212, 178, 118, 0.25); color: #8e9bb0; padding: 0.9rem; border-radius: 10px; cursor: pointer; font-size: 0.9rem;">
-      ▲ 나의 질문과 카드 궤적 처음부터 다시 읽기
-    </button>
-  </footer>
+  <!-- 정돈된 하단 유틸리티 바 -->
+<div style="width: 100%; max-width: 500px; margin: 2rem auto 1rem; display: flex; flex-direction: column; gap: 0.7rem; align-items: center;">
+  
+  <!-- 재방문 고객용 은은한 복기 버튼 (시선 분산 방지) -->
+  <button type="button" onclick="openArchiveModal()" style="background: rgba(212, 178, 118, 0.08); border: 1px solid rgba(212, 178, 118, 0.25); color: #cbb282; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; letter-spacing: 0.02em;">
+    📜 최근 박제된 신탁 기록 복기하기
+  </button>
+
+  <!-- 가볍고 간결한 최상단 이동 버튼 -->
+  <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="background: transparent; border: none; color: #7a889b; font-size: 0.8rem; cursor: pointer; padding: 0.4rem;">
+    ▲ 위로 이동
+  </button>
+
+</div>
 
   <!-- 홈 화면 추가 유도 안내 배너 (기본 숨김) -->
   <div id="pwaGuideBanner" style="display: none; margin: 1.5rem 0; padding: 1rem 1.2rem; background: rgba(212, 178, 118, 0.08); border: 1px dashed rgba(212, 178, 118, 0.4); border-radius: 10px; justify-content: space-between; align-items: center; color: #e6ebf5; width: 100%; max-width: 600px; box-sizing: border-box;">
