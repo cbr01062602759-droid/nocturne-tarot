@@ -1521,21 +1521,46 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-            const response = await fetch('/api/oracle', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal: controller.signal,
-              body: JSON.stringify({
-                question: (item.question && item.question.trim().length > 0)
-                  ? item.question
-                  : (item.placeholder || "내담자가 미처 언어화하지 못한 현재 무의식의 가장 시급한 당면 과제와 운명적 돌파구"),
-                tier: currentSelectedTier,
-                card1: (c1 && typeof c1 === 'object' ? (c1.name || c1.title || c1.card) : c1) || '운명의 원형',
-                card2: (c2 && typeof c2 === 'object' ? (c2.name || c2.title || c2.card) : c2) || '현실의 원형',
-                card3: (c3 && typeof c3 === 'object' ? (c3.name || c3.title || c3.card) : c3) || '미래의 원형',
-                userName: userName || '내담자'
-              })
-            });
+          const requestPayload = {
+      question: (item.question && item.question.trim().length > 0)
+        ? item.question
+        : (item.placeholder || "내담자가 미처 언어화하지 못한 현재 무의식의 가장 시급한 당면 과제"),
+      tier: currentSelectedTier,
+      card1: (c1 && typeof c1 === 'object' ? (c1.name || c1.title || c1.card) : c1) || '',
+      card2: (c2 && typeof c2 === 'object' ? (c2.name || c2.title || c2.card) : c2) || '',
+      card3: (c3 && typeof c3 === 'object' ? (c3.name || c3.title || c3.card) : c3) || '',
+      userName: userName || '내담자'
+    };
+
+    let response = null;
+    let lastError = null;
+
+    // 일시적 500 에러 및 통신 지연 시 최대 2회 즉각 재시도
+    for (let retryCount = 0; retryCount < 2; retryCount++) {
+      try {
+        response = await fetch('/api/oracle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify(requestPayload)
+        });
+
+        if (response && response.ok) {
+          break; // 정상 수신 시 루프 탈출
+        }
+      } catch (err) {
+        lastError = err;
+      }
+      // 통신 실패 시 0.5초 숨 고르고 재요청
+      if (retryCount < 1) {
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw lastError || new Error(`Oracle server returned status: ${response ? response.status : 'unknown'}`);
+    }
+    // === 여기까지 (1538번 줄) ===
 
             clearTimeout(timeoutId);
 
