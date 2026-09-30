@@ -36,7 +36,6 @@ export default async function handler(req, res) {
 
   const { step, question, cards, previousContext, userName } = bodyData || {};
 
-  // 카드 이름 안전 추출
   const getCardName = (idx) => {
     if (!cards) return '미지의 아르카나';
     if (Array.isArray(cards)) {
@@ -87,8 +86,8 @@ export default async function handler(req, res) {
 `;
   }
 
-  // Google Generative Language v1beta 표준 엔드포인트
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // v1beta가 아닌 안정화된 v1 엔드포인트 적용
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [
@@ -98,7 +97,7 @@ export default async function handler(req, res) {
     ],
     generationConfig: {
       temperature: 0.2,
-      responseMimeType: "application/json"
+      responseMimeType: 'application/json'
     }
   };
 
