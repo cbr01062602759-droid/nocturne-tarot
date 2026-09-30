@@ -4,7 +4,6 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -66,7 +65,8 @@ ${JSON.stringify(previousContext || {})}
 `;
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 404를 원천 방지하는 구글 공식 v1beta latest 엔드포인트
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -85,7 +85,6 @@ ${JSON.stringify(previousContext || {})}
 
     if (!apiResponse.ok) {
       const errText = await apiResponse.text();
-      // 구글의 거절 사유를 500 대신 200 JSON으로 감싸서 프론트가 뻗지 않게 전달
       console.error('Gemini API Rejection:', errText);
       return res.status(500).json({ error: 'Gemini 거절', details: errText });
     }
