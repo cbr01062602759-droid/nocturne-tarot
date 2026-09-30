@@ -86,41 +86,44 @@ export default async function handler(req, res) {
 `;
   }
 
-  // v1beta가 아닌 안정화된 v1 엔드포인트 적용
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 404를 뚫기 위해 유효 모델 후보군을 순차 시도
+  const modelCandidates = [
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash-001',
+    'gemini-2.0-flash',
+    'gemini-pro'
+  ];
 
-  const payload = {
-    contents: [
-      {
-        parts: [{ text: prompt }]
+  let lastError = null;
+
+  for (const model of modelCandidates) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const apiRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsed = JSON.parse(rawText);
+        return res.status(200).json(parsed);
+      } else {
+        lastError = await apiRes.text();
       }
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: 'application/json'
+    } catch (e) {
+      lastError = e.message;
     }
-  };
-
-  try {
-    const apiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!apiRes.ok) {
-      const errText = await apiRes.text();
-      console.error('Gemini API Reject Text:', errText);
-      return res.status(500).json({ error: 'Gemini Reject', details: errText });
-    }
-
-    const data = await apiRes.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    const parsed = JSON.parse(rawText);
-
-    return res.status(200).json(parsed);
-  } catch (err) {
-    console.error('Server Catch Exception:', err.message);
-    return res.status(500).json({ error: 'Server Catch Error', message: err.message });
   }
+
+  console.error('All model attempts failed:', lastError);
+  return res.status(500).json({ error: 'Gemini Models Exhausted', details: lastError });
 }
