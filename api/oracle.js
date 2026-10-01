@@ -27,7 +27,11 @@ export default async function handler(req, res) {
 
   let bodyData = req.body;
   if (typeof bodyData === 'string') {
-    try { bodyData = JSON.parse(bodyData); } catch (e) { bodyData = {}; }
+    try {
+      bodyData = JSON.parse(bodyData);
+    } catch (e) {
+      bodyData = {};
+    }
   }
 
   const { step, question, cards, previousContext, userName } = bodyData || {};
@@ -52,8 +56,8 @@ export default async function handler(req, res) {
 내담자 이름: ${userName || '내담자'}
 상담 맥락: ${JSON.stringify(previousContext || {})}
 
-당신은 엄격한 심리 마스터입니다. 내담자의 질문에 나태함, 현실 도피, 의지박약이 엿보인다면 공허한 위로나 칭찬을 일절 금지합니다.
-내담자의 자기기만을 냉철히 꾸짖고, 카를 융의 그림자 직면과 스토아적 행동 규율을 담아 4~5문단의 장엄하고 날카로운 최종 신성 판결문을 작성하십시오. 표준어만 사용하십시오.
+당신은 엄격한 심리 마스터입니다. 내담자의 질문에 나태함, 현실 도피, 의지박약이 엿보인다면 공허한 위로를 배제하고 직시하도록 돕습니다.
+내담자의 자기기만을 냉철히 꾸짖고, 카를 융의 그림자 직면과 스토아적 행동 규율을 담아 4~5문단의 장엄하고 날카로운 최종 신성 판결문(Grand Synthesis)을 작성하십시오. 표준어만 사용하십시오.
 
 반드시 마크다운 기호 없이 아래 순수 JSON 포맷으로만 응답하십시오:
 {
@@ -82,51 +86,32 @@ export default async function handler(req, res) {
 `;
   }
 
-  // 1. 현재 API 키가 접근 가능한 실제 모델 목록을 구글에서 직접 조회
-  let targetModel = 'models/gemini-1.5-flash';
-  try {
-    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    if (listRes.ok) {
-      const listData = await listRes.json();
-      const validModels = (listData.models || [])
-        .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-        .map(m => m.name);
+  // 구글 공식 최신 지정 모델: gemini-3.8-flash
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
 
-      // flash 우선 선택, 없으면 첫 번째 지원 모델 선택
-      const flashModel = validModels.find(m => m.includes('flash'));
-      if (flashModel) {
-        targetModel = flashModel;
-      } else if (validModels.length > 0) {
-        targetModel = validModels[0];
+  const payload = {
+    contents: [
+      {
+        parts: [{ text: prompt }]
       }
-    } else {
-      const listErr = await listRes.text();
-      console.error('ListModels Rejection:', listErr);
-      return res.status(500).json({ error: 'ListModels 거절', details: listErr });
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: 'application/json'
     }
-  } catch (e) {
-    console.error('ListModels Fetch Failed:', e.message);
-  }
-
-  // 2. 찾아낸 정규 모델 경로로 전송
-  const genUrl = `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`;
+  };
 
   try {
-    const apiRes = await fetch(genUrl, {
+    const apiRes = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: 'application/json',
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!apiRes.ok) {
       const errText = await apiRes.text();
-      return res.status(500).json({ error: `Model [${targetModel}] Reject`, details: errText });
+      console.error('Gemini Reject Text:', errText);
+      return res.status(500).json({ error: 'Gemini Reject', details: errText });
     }
 
     const data = await apiRes.json();
@@ -135,6 +120,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(parsed);
   } catch (err) {
+    console.error('Server Catch Exception:', err.message);
     return res.status(500).json({ error: 'Server Catch Error', message: err.message });
   }
 }
