@@ -1628,7 +1628,10 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     `;
   }
 
-  function showFinalMasterSummary() {
+/* ==========================================================================
+     [마스터 최종 피날레 서사 : Gemini 실시간 심층 신성 판결문]
+     ========================================================================== */
+  async function showFinalMasterSummary() {
     document.getElementById('vipRitualContainer').style.display = 'none';
     document.getElementById('stageSection').style.display = 'none';
 
@@ -1647,8 +1650,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     document.getElementById('certUserBirth').innerText = `${birthNum} (${currentCalType}, ${birthTime})`;
     document.getElementById('certCode').innerText = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    document.getElementById('finalStoryNarrative').innerHTML = buildDynamicFinalNarrative(userName);
-
+    // 18장 카드 갤러리 매트릭스 먼저 렌더링
     const grid = document.getElementById('masterGalleryGrid');
     grid.innerHTML = '';
 
@@ -1682,6 +1684,46 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     const sumSec = document.getElementById('masterSummarySection');
     sumSec.style.display = 'block';
     sumSec.scrollIntoView({ behavior: 'smooth' });
+
+    // 피날레 영역 로딩 인디케이터 표시
+    const narrativeEl = document.getElementById('finalStoryNarrative');
+    narrativeEl.innerHTML = `
+      <div style="text-align:center; padding: 30px 10px; color:#dfba73;">
+        <div style="font-size:16px; font-weight:bold; margin-bottom:8px;">✦ 18장 아르카나 매트릭스의 총운 궤적을 엮어내는 중입니다... ✦</div>
+        <div style="font-size:12px; color:#aaa;">내담자의 전 문항 여정을 관통하는 심층 신성 판결문(Grand Synthesis)을 봉인 해제하고 있습니다.</div>
+      </div>
+    `;
+
+    // Gemini 백엔드에 18장 전체 매트릭스 전달
+    try {
+      const allCardsData = allMasterCollectedCards.map(item => ({
+        label: item.label,
+        cardName: item.card.name
+      }));
+
+      const res = await fetch('/api/oracle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          step: 'synthesis',
+          userName: userName,
+          allCards: allCardsData
+        })
+      });
+
+      if (res.ok) {
+        const finalData = await res.json();
+        const text = finalData.finalVerdict || finalData.verdictNarrative;
+        if (text) {
+          narrativeEl.innerHTML = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+          return;
+        }
+      }
+      throw new Error("Invalid response format");
+    } catch (err) {
+      console.warn("최종 판결 수신 지연, 백업 텍스트로 보완:", err);
+      narrativeEl.innerHTML = buildDynamicFinalNarrative(userName);
+    }
   }
 
   function copySecretArchiveLink() {
