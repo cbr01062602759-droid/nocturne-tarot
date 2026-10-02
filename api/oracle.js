@@ -1,4 +1,4 @@
-// api/oracle.js - Vercel Serverless Function (속성명 완벽 매칭 버전)
+// api/oracle.js - Vercel Serverless Function (격조 높은 융 심리학 마스터 버전)
 export const config = {
   maxDuration: 60,
 };
@@ -34,52 +34,66 @@ export default async function handler(req, res) {
     }
   }
 
-  const question = bodyData.question || '내담자가 마주한 실존적 갈림길';
-  const userName = bodyData.userName || '내담자';
   const step = bodyData.step || 'round';
-
-  const card1 = bodyData.card1 || (Array.isArray(bodyData.cards) ? bodyData.cards[0] : '미지의 아르카나');
-  const card2 = bodyData.card2 || (Array.isArray(bodyData.cards) ? bodyData.cards[1] : '미지의 아르카나');
-  const card3 = bodyData.card3 || (Array.isArray(bodyData.cards) ? bodyData.cards[2] : '미지의 아르카나');
+  const userName = bodyData.userName || '내담자';
+  const question = bodyData.question || '내담자의 실존적 갈림길';
 
   let prompt = '';
+
   if (step === 'synthesis') {
+    // ✦ 18장 전체 총운 매트릭스 피날레
+    const allCardsSummary = bodyData.allCards
+      ? bodyData.allCards.map(c => `[${c.label}: ${c.cardName}]`).join(', ')
+      : '전체 18장 아르카나 매트릭스';
+
     prompt = `
 내담자 이름: ${userName}
-내담자 질문: "${question}"
-상담 전체 맥락: ${JSON.stringify(bodyData.previousContext || {})}
+도출된 18장 매트릭스: ${allCardsSummary}
+상담 종합 맥락: ${JSON.stringify(bodyData.contextSummary || {})}
 
-당신은 영혼의 병목을 꿰뚫어 보는 최고의 직관적 타로 마스터입니다.
-상투적인 위로와 교과서적 격려를 배제하고, 내담자의 무의식적 회피와 자기기만을 날카롭게 직면시키십시오.
-카를 융의 심리학적 통찰과 단호한 실천 규율을 담아 4~5문단의 장엄하고 서슬 퍼런 최종 신성 판결문(Grand Synthesis)을 작성하십시오. 표준어만 사용하십시오.
+당신은 심층 심리학(카를 융)과 원형적 지혜를 집대성한 격조 높은 운명 나침반의 대마스터입니다.
+상투적인 미사여구("흘린 땀방울은 배신하지 않는다" 등)나 천편일률적인 위로를 엄격히 금지합니다.
+또한 인신공격적 비난이나 거친 언사도 배제하십시오.
+
+대신, 내담자가 지금까지 무의식 속에서 겪어온 내적 투쟁과 그림자를 깊이 있게 조명하고, 
+18장의 카드가 가리키는 거대한 운명의 분기점에서 내담자가 취해야 할 실천적 결단과 스토아적 자기 통제 규율을 장엄하고 서늘한 품격으로 서술하십시오.
+(총 4~5문단의 완성도 높은 긴 호흡의 서사, 문단 구분은 줄바꿈 2번)
 
 반드시 마크다운 기호 없이 아래 순수 JSON 포맷으로만 응답하십시오:
 {
-  "verdictNarrative": "작성된 심층 최종 판결문 본문 (4~5문단)",
-  "finalVerdict": "작성된 심층 최종 판결문 본문 (4~5문단)"
+  "finalVerdict": "작성된 4~5문단의 장엄하고 깊이 있는 최종 판결문 본문",
+  "verdictNarrative": "작성된 4~5문단의 장엄하고 깊이 있는 최종 판결문 본문"
 }
 `;
   } else {
+    // ✦ 개별 1~5문항 3카드 분석
+    const card1 = bodyData.card1 || (Array.isArray(bodyData.cards) ? bodyData.cards[0] : '미지의 아르카나');
+    const card2 = bodyData.card2 || (Array.isArray(bodyData.cards) ? bodyData.cards[1] : '미지의 아르카나');
+    const card3 = bodyData.card3 || (Array.isArray(bodyData.cards) ? bodyData.cards[2] : '미지의 아르카나');
+
+    const c1Name = typeof card1 === 'object' ? (card1.name || JSON.stringify(card1)) : card1;
+    const c2Name = typeof card2 === 'object' ? (card2.name || JSON.stringify(card2)) : card2;
+    const c3Name = typeof card3 === 'object' ? (card3.name || JSON.stringify(card3)) : card3;
+
     prompt = `
 내담자 이름: ${userName}
 내담자 실존 질문: "${question}"
 도출된 3대 아르카나:
-1. 내면 기저: ${typeof card1 === 'object' ? JSON.stringify(card1) : card1}
-2. 현실 돌파: ${typeof card2 === 'object' ? JSON.stringify(card2) : card2}
-3. 미래 귀결: ${typeof card3 === 'object' ? JSON.stringify(card3) : card3}
+1. 내면 기저(S/W): ${c1Name}
+2. 현실 돌파(O/T): ${c2Name}
+3. 향후 궤적(결과): ${c3Name}
 
-공허한 긍정과 뻔한 해설을 배제하십시오.
-내담자의 구체적인 질문 상황("${question}")과 세 카드의 유기적 연결고리를 파고들어 날카롭고 서늘한 통찰을 제시하십시오.
+당신은 영혼의 병목을 냉철하게 짚어내는 카를 융 심리학 기반의 직관적 타로 마스터입니다.
+공허한 긍정이나 영혼 없는 위로를 배제하십시오.
+동시에 '꼭두각시', '무능' 같은 감정적인 비난이나 과격한 폭언도 지양하십시오.
+현상을 냉철하게 꿰뚫어 보되, 내담자가 주체적으로 자신의 현실을 직면하고 자립적인 결단을 내릴 수 있도록 돕는 '단호하고 무게감 있는 어른의 품격'을 유지하십시오.
 
 반드시 마크다운 기호 없이 아래 순수 JSON 포맷으로만 응답하십시오:
 {
-  "verdictNarrative": "${userName} 님의 질문에 대한 날카롭고 직관적인 종합 신탁 문장 (3~4문장)",
-  "baseAnalysis": "${card1} 카드가 가리키는 내면 기저 및 무의식적 병목 분석 (2~3문장)",
-  "actionAnalysis": "${card2} 카드가 명령하는 비타협적이고 현실적인 돌파 전략 규범 (2~3문장)",
-  "futureAnalysis": "${card3} 카드가 경고하는 인과적 귀결과 내담자가 져야 할 책임 (2~3문장)",
-  "swAnalysis": "${card1} 카드가 가리키는 내면 기저 및 무의식적 병목 분석 (2~3문장)",
-  "otStrategy": "${card2} 카드가 명령하는 비타협적이고 현실적인 돌파 전략 규범 (2~3문장)",
-  "resultTrajectory": "${card3} 카드가 경고하는 인과적 귀결과 내담자가 져야 할 책임 (2~3문장)"
+  "verdictNarrative": "${userName} 님의 질문과 카드가 교차하는 지점을 짚어낸 명료하고 단호한 종합 신탁 지침 (3~4문장)",
+  "baseAnalysis": "${c1Name} 카드가 보여주는 현재 내면의 무의식적 기저와 직면해야 할 그림자 (2~3문장)",
+  "actionAnalysis": "${c2Name} 카드가 제시하는 감정에 휘둘리지 않는 현실적 돌파 규범과 행동 원칙 (2~3문장)",
+  "futureAnalysis": "${c3Name} 카드가 예고하는 인과적 귀결과 내담자가 감당해야 할 현실적 책임 (2~3문장)"
 }
 `;
   }
@@ -93,7 +107,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.75,
+          temperature: 0.65, // 서술의 깊이와 격조를 살리는 최적 균형점
           responseMimeType: 'application/json',
         },
       }),
