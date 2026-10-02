@@ -1,4 +1,4 @@
-// api/oracle.js - Vercel Serverless Function
+// api/oracle.js - Vercel Serverless Function (프론트엔드 완벽 호환 버전)
 export const config = {
   maxDuration: 60,
 };
@@ -34,59 +34,51 @@ export default async function handler(req, res) {
     }
   }
 
-  const { step, question, cards, previousContext, userName } = bodyData || {};
+  // 프론트엔드가 보내는 규격 완벽 대응 (card1, card2, card3 및 cards 배열 모두 수용)
+  const question = bodyData.question || '내담자가 마주한 실존적 갈림길';
+  const userName = bodyData.userName || '내담자';
+  const step = bodyData.step || 'round';
 
-  const getCardName = (idx) => {
-    if (!cards) return '미지의 아르카나';
-    if (Array.isArray(cards)) {
-      const item = cards[idx];
-      if (!item) return '미지의 아르카나';
-      return typeof item === 'string' ? item : (item.name || item.title || JSON.stringify(item));
-    }
-    return typeof cards === 'string' ? cards : '미지의 아르카나';
-  };
-
-  const card1 = getCardName(0);
-  const card2 = getCardName(1);
-  const card3 = getCardName(2);
+  const card1 = bodyData.card1 || (Array.isArray(bodyData.cards) ? bodyData.cards[0] : '미지의 아르카나');
+  const card2 = bodyData.card2 || (Array.isArray(bodyData.cards) ? bodyData.cards[1] : '미지의 아르카나');
+  const card3 = bodyData.card3 || (Array.isArray(bodyData.cards) ? bodyData.cards[2] : '미지의 아르카나');
 
   let prompt = '';
   if (step === 'synthesis') {
     prompt = `
-내담자 이름: ${userName || '내담자'}
-상담 맥락: ${JSON.stringify(previousContext || {})}
+내담자 이름: ${userName}
+내담자 질문: "${question}"
+상담 전체 맥락: ${JSON.stringify(bodyData.previousContext || {})}
 
-당신은 영혼의 병목을 꿰뚫어 보는 타로 마스터입니다.
-상투적인 격려나 뻔한 미사여구를 배제하고, 내담자의 무의식적 회피와 자기기만을 냉철히 직면시키십시오.
-카를 융의 심리학적 통찰과 단호한 실천 규율을 담아 4~5문단의 장엄한 최종 신성 판결문(Grand Synthesis)을 작성하십시오. 표준어만 사용하십시오.
+당신은 영혼의 병목을 꿰뚫어 보는 최고의 직관적 타로 마스터입니다.
+상투적인 위로, 뻔한 칭찬, 천편일률적인 격려를 일절 배제하십시오.
+내담자의 숨은 무의식적 회피와 자기기만을 날카롭게 직면시키고, 카를 융의 심리학적 통찰과 실천적 결단을 담은 4~5문단의 장엄하고 서슬 퍼런 최종 신성 판결문(Grand Synthesis)을 작성하십시오. 표준어만 사용하십시오.
 
 반드시 마크다운 기호 없이 아래 순수 JSON 포맷으로만 응답하십시오:
 {
   "verdictNarrative": "작성된 심층 최종 판결문 본문 (4~5문단)",
-  "finalVerdict": "작성된 심층 최종 판결문 본문 (4~5문단)",
   "verdictTitle": "카드가 가리키는 서늘한 최종 본질 통찰"
 }
 `;
   } else {
     prompt = `
-내담자 이름: ${userName || '내담자'}
-상담 문항: ${step}
-내담자 질문: "${question || ''}"
-도출 카드:
-1. 내면 기저(S/W): ${card1}
-2. 돌파 전략(O/T): ${card2}
-3. 미래 귀결(Result): ${card3}
+내담자 이름: ${userName}
+내담자 실존 질문: "${question}"
+도출된 3대 아르카나:
+1. 내면 기저: ${typeof card1 === 'object' ? JSON.stringify(card1) : card1}
+2. 현실 돌파: ${typeof card2 === 'object' ? JSON.stringify(card2) : card2}
+3. 미래 귀결: ${typeof card3 === 'object' ? JSON.stringify(card3) : card3}
 
-공허한 긍정과 틀에 박힌 해설을 일절 배제하십시오.
-내담자의 구체적인 질문 상황과 3장의 카드가 맺는 역학 관계를 파고들어 날카롭고 실천적인 통찰을 제시하십시오.
+공허한 긍정과 앵무새 같은 교과서식 해설을 일절 배제하십시오.
+내담자의 구체적인 질문 상황("${question}")과 세 장의 카드가 맺는 독특한 역학 관계를 꿰뚫어 독창적이고 날카로운 통찰을 제시하십시오.
 
 반드시 마크다운 기호 없이 아래 순수 JSON 포맷으로만 응답하십시오:
 {
-  "verdictNarrative": "카드가 제시하는 핵심 종합 통찰 (2~3문장)",
+  "verdictNarrative": "${userName} 님의 질문에 대한 날카롭고 직관적인 종합 신탁 문장 (3~4문장으로 서술)",
   "verdictTitle": "카드가 가리키는 서늘한 한 줄 본질 통찰",
-  "swAnalysis": "${card1} 카드로 폭로하는 내면의 무의식적 병목과 직면해야 할 그림자 (2~3문장)",
-  "otStrategy": "${card2} 카드가 명령하는 비타협적이고 현실적인 돌파 규율과 결단 (2~3문장)",
-  "resultTrajectory": "${card3} 카드가 경고하는 인과적 귀결과 내담자가 져야 할 책임 (2~3문장)"
+  "swAnalysis": "1번 카드로 폭로하는 내면의 무의식적 병목과 그림자 직면 (2~3문장)",
+  "otStrategy": "2번 카드가 명령하는 비타협적이고 현실적인 돌파 규율과 결단 (2~3문장)",
+  "resultTrajectory": "3번 카드가 경고하는 인과적 귀결과 내담자가 져야 할 책임 (2~3문장)"
 }
 `;
   }
@@ -100,7 +92,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.75, // 창의적이고 풍부한 심층 분석 유도
           responseMimeType: 'application/json',
         },
       }),
