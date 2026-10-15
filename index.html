@@ -1310,29 +1310,24 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
   try {
     const paymentId = `nocturne_${Date.now()}`;
     
-    // 포트원 V2 헥토파이낸셜 테스트 결제창 호출
+    // 헥토파이낸셜 호환 필수 파라미터만 전송
     const response = await PortOne.requestPayment({
-      storeId: "store-52ed9d3b-a112-43f4-82f0-c318e58d10b4",       // 아까 복사한 store-... 값
-      channelKey: "channel-key-18aa9c67-9b2c-4201-9d99-3d6716b14d06",  // 아까 복사한 channel-key-... 값
+      storeId: "store-52ed9d3b-a112-43f4-82f0-c318e58d10b4",
+      channelKey: "channel-key-18aa9c67-9b2c-4201-9d99-3d6716b14d06",
       paymentId: paymentId,
       orderName: "녹턴 컴퍼스 VIP 심층 신탁 리포트",
-      totalAmount: 1000,                  // 심사용 테스트 금액 (1,000원)
-      currency: "CURRENCY_KRW",
-      payMethod: "CARD",
-      customer: {
-        fullName: "내담자",
-        phoneNumber: "010-0000-0000",
-        email: "guest@nocturnecompass.com"
-      }
+      totalAmount: 1000,
+      currency: "KRW",
+      payMethod: "CARD"
     });
 
-    // 결제창 닫기 또는 결제 취소 시
+    // 결제 취소 또는 실패 시
     if (response.code != null) {
       alert("결제가 완료되지 않았습니다: " + response.message);
       return;
     }
 
-    // 결제 완료 시 원래 질문 작성 페이지로 이동!
+    // 결제 성공 시 다음 단계 이동
     alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
     goToStep2Questions();
 
@@ -1340,7 +1335,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     console.error("결제 호출 오류:", error);
     alert("결제창 호출 중 문제가 발생했습니다.");
   }
-} 
+}
 function goToStep2Questions() {  
     document.getElementById('vipStep1Section').style.display = 'none';
 
