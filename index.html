@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>"> 
  <!-- PWA 웹앱 설정 및 모바일 상태바 일체화 -->
     <link rel="manifest" href="/manifest.json">
@@ -1308,32 +1308,29 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
 
   async function payAndGoToQuestions() {
   try {
-    const paymentId = `nocturne_${Date.now()}`;
-    
-    // 헥토파이낸셜(SETTLE) 규격 맞춤 호출
-    const response = await PortOne.requestPayment({
-      storeId: "store-52ed9d3b-a112-43f4-82f0-c318e58d10b4",
+    const IMP = window.IMP;
+    IMP.init("store-52ed9d3b-a112-43f4-82f0-c318e58d10b4");
+
+    const merchantUid = `nocturne_${Date.now()}`;
+
+    // 헥토파이낸셜 V1 표준 결제창 호출
+    IMP.request_pay({
       channelKey: "channel-key-18aa9c67-9b2c-4201-9d99-3d6716b14d06",
-      paymentId: paymentId,
-      orderName: "녹턴 컴퍼스 VIP 심층 신탁 리포트",
-      totalAmount: 1000,
-      currency: "KRW",
-      payMethod: "CARD",
-      windowType: {
-        pc: "IFRAME",
-        mobile: "REDIRECTION"
+      pay_method: "card",
+      merchant_uid: merchantUid,
+      name: "녹턴 컴퍼스 VIP 심층 신탁 리포트",
+      amount: 1000,
+      buyer_email: "guest@nocturnecompass.com",
+      buyer_name: "내담자",
+      buyer_tel: "010-0000-0000"
+    }, function (rsp) {
+      if (rsp.success) {
+        alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
+        goToStep2Questions();
+      } else {
+        alert("결제가 완료되지 않았습니다: " + rsp.error_msg);
       }
     });
-
-    // 결제 취소 또는 실패 시
-    if (response.code != null) {
-      alert("결제가 완료되지 않았습니다: " + response.message);
-      return;
-    }
-
-    // 결제 성공 시 이동
-    alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
-    goToStep2Questions();
 
   } catch (error) {
     console.error("결제 호출 오류:", error);
