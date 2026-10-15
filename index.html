@@ -1306,8 +1306,15 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     }
   }
 
-  async function payAndGoToQuestions() {
+function payAndGoToQuestions() {
   try {
+    // ✦ 1. 이미 결제를 마친 내담자인지 확인 (뒤로가기 후 재진입 대응)
+    if (sessionStorage.getItem('nocturne_paid') === 'true') {
+      alert("이미 결제가 확인되었습니다. 질문 작성 페이지로 바로 이동합니다.");
+      goToStep2Questions();
+      return;
+    }
+
     const IMP = window.IMP;
     IMP.init("imp65635716");
 
@@ -1325,6 +1332,10 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       buyer_tel: "010-0000-0000"
     }, function (rsp) {
       if (rsp.success) {
+        // ✦ 2. 결제 성공 즉시 브라우저에 결제 완료 티켓 발급!
+        sessionStorage.setItem('nocturne_paid', 'true');
+        sessionStorage.setItem('nocturne_paid_uid', rsp.merchant_uid);
+
         alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
         goToStep2Questions();
       } else {
