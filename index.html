@@ -1310,7 +1310,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
   try {
     const paymentId = `nocturne_${Date.now()}`;
     
-    // 헥토파이낸셜 호환 필수 파라미터만 전송
+    // 헥토파이낸셜(SETTLE) 규격 맞춤 호출
     const response = await PortOne.requestPayment({
       storeId: "store-52ed9d3b-a112-43f4-82f0-c318e58d10b4",
       channelKey: "channel-key-18aa9c67-9b2c-4201-9d99-3d6716b14d06",
@@ -1318,7 +1318,11 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       orderName: "녹턴 컴퍼스 VIP 심층 신탁 리포트",
       totalAmount: 1000,
       currency: "KRW",
-      payMethod: "CARD"
+      payMethod: "CARD",
+      windowType: {
+        pc: "IFRAME",
+        mobile: "REDIRECTION"
+      }
     });
 
     // 결제 취소 또는 실패 시
@@ -1327,7 +1331,7 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
       return;
     }
 
-    // 결제 성공 시 다음 단계 이동
+    // 결제 성공 시 이동
     alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
     goToStep2Questions();
 
