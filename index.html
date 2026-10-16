@@ -829,17 +829,19 @@
 
   <div class="oneline-nav-bar" style="margin-top: 25px;">
     <button type="button" class="btn-circle-prev" onclick="backToLastVipQuestion()" title="이전 질문 신탁으로 이동">◁</button>
-    <!-- [개선된 신탁 기록 저장 & 링크 복사 액션 바] -->
-        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; flex: 1;">
-          <button type="button" class="btn-action" style="flex: 2; min-width: 200px; padding: 12px 15px; font-weight: bold; background: linear-gradient(135deg, #dfba73, #9d7a36); color: #000; border: none; border-radius: 6px; cursor: pointer; font-size: 13.5px;" onclick="saveSacredArchive()">
-            📜 평생 소장용 신탁 기록 저장 (HTML / TXT)
+    <!-- [녹턴 캡슐형 통합 액션 바 : 저장 / 링크복사 / 복기] -->
+        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; flex: 1; align-items: center;">
+          <button type="button" class="btn-action" style="flex: 1.2; min-width: 130px; padding: 13px 14px; font-weight: bold; background: linear-gradient(135deg, #dfba73, #9d7a36); color: #000; border: none; border-radius: 30px; cursor: pointer; font-size: 13.5px; box-shadow: 0 4px 15px rgba(223, 186, 115, 0.25); display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="saveSacredArchive()">
+            <span>기록 저장</span> 💾
           </button>
-          <button type="button" class="btn-action" style="flex: 1; min-width: 100px; padding: 12px 15px; background: rgba(223, 186, 115, 0.15); border: 1px solid #dfba73; color: #dfba73; border-radius: 6px; cursor: pointer; font-size: 13.5px;" onclick="copyConsultLink()">
-            🔗 링크 복사
+          <button type="button" class="btn-action" style="flex: 1; min-width: 110px; padding: 13px 14px; background: rgba(223, 186, 115, 0.12); border: 1px solid rgba(223, 186, 115, 0.6); color: #dfba73; border-radius: 30px; cursor: pointer; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="copyConsultLink()">
+            <span>링크 복사</span> 🔗
+          </button>
+          <button type="button" class="btn-action" style="flex: 1; min-width: 110px; padding: 13px 14px; background: rgba(223, 186, 115, 0.12); border: 1px solid rgba(223, 186, 115, 0.6); color: #dfba73; border-radius: 30px; cursor: pointer; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="recallLastSealedArchive()">
+            <span>기록 복기</span> 📜
           </button>
         </div>
       </div>
-
 <div id="card-lightbox"><img id="lightbox-img" src="" alt="순수 카드 아트 감상"></div>
 
 <script>
@@ -859,7 +861,7 @@
     { id: 9, name: "9. 은둔자 (The Hermit)", files: ["maj_09_hermit.webp", "09_hermit.webp", "hermit.webp"], text1: "세상의 번잡함을 잠시 뒤로하고 본질을 탐구할 때입니다.", text2: "오랜 내공이 독보적인 전문성과 통찰로 완성됩니다.", text3: "나만의 기술과 철학을 갈고닦는 데 집중하십시오." },
     { id: 10, name: "10. 운명의 수레바퀴 (Wheel of Fortune)", files: ["maj_10_wheel_of_fortune.webp", "maj_10_wheel.webp", "10_wheel.webp"], text1: "거대한 운명의 사이클이 상승 궤도로 진입했습니다.", text2: "정체되었던 흐름이 급물살을 타며 예상치 못한 행운이 찾아옵니다.", text3: "변화의 파도에 유연하게 몸을 맡기십시오." },
     { id: 11, name: "11. 정의 (Justice)", files: ["maj_11_justice.webp", "11_justice.webp", "justice.webp"], text1: "냉철한 이성과 데이터로 저울질하십시오.", text2: "시비가 명확히 가려지고 정당한 보상이 주어집니다.", text3: "모든 계약과 조건을 객관적으로 문서화하십시오." },
-    { id: 12, name: "12. 매달린 사람 (The Hanged Man)", files: ["maj_12_hanged.webp", "maj_12_hanged_man.webp", "12_hanged.webp"], text1: "세상을 거꾸로 바라보는 관점의 전환이 필요합니다.", text2: "남들이 보지 못하는 사각지대에서 독창적인 답이 탄생합니다.", text3: "기꺼이 내려놓음으로써 새로운 차원의 지혜를 얻으십시오." },
+    { id: 12, name: "12. 매달린 사람 (The Hanged Man)", files: ["maj_12_hanged_man.webp", "maj_12_hanged_man.webp", "12_hanged.webp"], text1: "세상을 거꾸로 바라보는 관점의 전환이 필요합니다.", text2: "남들이 보지 못하는 사각지대에서 독창적인 답이 탄생합니다.", text3: "기꺼이 내려놓음으로써 새로운 차원의 지혜를 얻으십시오." },
     { id: 13, name: "13. 죽음 (Death)", files: ["maj_13_death.webp", "13_death.webp", "death.webp"], text1: "낡은 껍질을 벗어던져야 새로운 살이 돋아납니다.", text2: "비효율적인 구조가 종결되고 새로운 판이 깔립니다.", text3: "끝난 것에 집착하지 말고 새 시대를 여십시오." },
     { id: 14, name: "14. 절제 (Temperance)", files: ["maj_14_temperance.webp", "14_temperance.webp", "temperance.webp"], text1: "서로 다른 요소를 황금 비율로 배합하는 연금술이 필요합니다.", text2: "극단적인 갈등이 치유되며 지속 가능한 조화가 안착됩니다.", text3: "서두르지 않는 소통으로 기운을 정화하십시오." },
     { id: 15, name: "15. 악마 (The Devil)", files: ["maj_15_devil.webp", "15_devil.webp", "devil.webp"], text1: "당신을 옭아매는 완벽주의나 불안의 사슬을 직시하십시오.", text2: "치명적인 매력과 본능적 에너지가 거대한 흡인력을 낳습니다.", text3: "강박을 경계하고 건강한 창조력으로 승화시키십시오." },
