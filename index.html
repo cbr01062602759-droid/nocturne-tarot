@@ -1370,58 +1370,204 @@ function goToStep2Questions() {
     step2Sec.style.display = 'block';
     step2Sec.scrollIntoView({ behavior: 'smooth' });
   }
-    // ✦ 평생 소장용 신탁 기록 자동 저장 솔루션 (HTML + TXT 동시 다운로드)
+   // ✦ 평생 소장용 진짜 웹 아카이브 박제 저장 (디자인 + 18장 카드 + 살아있는 BGM 플레이어 탑재)
 function saveSacredArchive() {
   const userName = document.getElementById('certUserName')?.innerText || "내담자";
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  
-  // 최종 신탁 본문 텍스트 추출
-  const verdictElem = document.querySelector('#synthesisBox') || document.querySelector('.synthesis-verdict-body') || document.body;
-  const finalVerdictText = verdictElem.innerText.replace(/[\n\r]+/g, '\n\n');
 
-  // 1. 순수 텍스트(TXT) 문서 생성 및 다운로드
+  // 1. 순수 텍스트(TXT) 저장 (메모장 보관용)
+  const synthesisElem = document.querySelector('#synthesisBox') || document.querySelector('.synthesis-verdict-body');
+  const verdictRawText = synthesisElem ? synthesisElem.innerText : "녹턴 컴퍼스 신탁 기록";
   const txtContent = `=================================================\n` +
                      `  녹턴 컴퍼스 (NOCTURNE COMPASS) - 영구 신탁 리포트\n` +
                      `=================================================\n` +
                      `내담자: ${userName} 님\n` +
                      `보존일시: ${new Date().toLocaleString()}\n\n` +
-                     `-------------------------------------------------\n` +
                      `[나침반 마스터 최종 신성 판결문]\n` +
                      `-------------------------------------------------\n` +
-                     `${finalVerdictText}\n\n` +
+                     `${verdictRawText}\n\n` +
                      `=================================================\n` +
-                     `* 본 기록은 녹턴 컴퍼스 성역 클라우드에 보존되어 있습니다.\n`;
-
+                     `* 본 기록은 녹턴 컴퍼스 성역 클라우드에 영구 보존됩니다.\n`;
   downloadHelper(`[녹턴컴퍼스]_${userName}_신탁리포트_${dateStr}.txt`, txtContent, 'text/plain;charset=utf-8');
 
-  // 2. 오프라인 브라우저 열람용 독립형 HTML 웹문서 생성 및 다운로드
-  const htmlContent = `<!DOCTYPE html>
+  // 2. 예술 작품처럼 사이트 디자인 + BGM까지 그대로 열리는 [진짜 박제 HTML] 생성
+  const resultClone = (document.getElementById('vipStep3Result') || document.getElementById('resultArea') || document.body).cloneNode(true);
+  
+  // 저장본에서 불필요한 컨트롤 버튼들만 선별 제거 (BGM 컨트롤은 보존)
+  resultClone.querySelectorAll('.oneline-nav-bar, .tri-split-action-bar, button, .footer-info, footer').forEach(el => el.remove());
+
+  // 상대경로 이미지(cards/...)를 절대경로(https://...)로 변환하여 로컬에서도 카드 100% 렌더링
+  resultClone.querySelectorAll('img').forEach(img => {
+    if (img.src && !img.src.startsWith('http')) {
+      img.src = new URL(img.getAttribute('src'), window.location.origin).href;
+    }
+  });
+
+  const completeHtml = `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>녹턴 컴퍼스 - ${userName} 님의 영구 신탁 기록</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>녹턴 컴퍼스 - ${userName} 님의 영구 신성 아카이브</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <style>
-    body { background-color: #0b0f19; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; padding: 40px 20px; line-height: 1.8; max-width: 760px; margin: 0 auto; }
-    .header { text-align: center; border-bottom: 1px solid rgba(223, 186, 115, 0.4); padding-bottom: 20px; margin-bottom: 30px; }
-    .header h1 { color: #dfba73; font-size: 22px; letter-spacing: 2px; margin-bottom: 8px; }
-    .header p { color: #94a3b8; font-size: 13px; margin: 0; }
-    .content-box { background: rgba(18, 26, 43, 0.85); border: 1px solid rgba(223, 186, 115, 0.3); border-radius: 10px; padding: 25px; white-space: pre-wrap; font-size: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .footer { text-align: center; margin-top: 40px; color: #64748b; font-size: 12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #070a13;
+      background-image: radial-gradient(circle at 50% 20%, #151d30 0%, #070a13 80%);
+      color: #e2e8f0;
+      font-family: 'Pretendard', sans-serif;
+      padding: 40px 15px;
+      line-height: 1.8;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .archive-container {
+      max-width: 820px;
+      width: 100%;
+      background: rgba(13, 19, 33, 0.95);
+      border: 1px solid #dfba73;
+      border-radius: 12px;
+      padding: 35px 25px;
+      box-shadow: 0 0 40px rgba(223, 186, 115, 0.2);
+      position: relative;
+    }
+    /* 신비로운 플로팅 BGM 컨트롤러 */
+    .bgm-control-box {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(223, 186, 115, 0.15);
+      border: 1px solid #dfba73;
+      padding: 6px 14px;
+      border-radius: 20px;
+      color: #dfba73;
+      font-size: 13px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    .bgm-control-box:hover {
+      background: rgba(223, 186, 115, 0.3);
+      transform: scale(1.03);
+    }
+    .archive-header {
+      text-align: center;
+      border-bottom: 1px solid rgba(223, 186, 115, 0.4);
+      padding-bottom: 25px;
+      margin-bottom: 30px;
+    }
+    .archive-header h1 {
+      color: #dfba73;
+      font-size: 24px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .archive-header p {
+      color: #94a3b8;
+      font-size: 13.5px;
+    }
+    /* 카드 매트릭스 18장 그리드 복원 */
+    .matrix-grid-cluster {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    @media (max-width: 600px) {
+      .matrix-grid-cluster { grid-template-columns: repeat(3, 1fr); }
+    }
+    .matrix-grid-cluster img {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid rgba(223, 186, 115, 0.5);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .card-caption {
+      font-size: 11px;
+      color: #dfba73;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .synthesis-box, .verdict-box {
+      background: rgba(18, 26, 43, 0.85);
+      border: 1px solid rgba(223, 186, 115, 0.4);
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 30px;
+      white-space: pre-wrap;
+      font-size: 15.5px;
+      color: #f1f5f9;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .footer-seal {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px dashed rgba(223, 186, 115, 0.3);
+      color: #64748b;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>✦ NOCTURNE COMPASS SACRED ARCHIVE ✦</h1>
-    <p>내담자: <strong>${userName}</strong> 님 | 보존 일시: ${new Date().toLocaleString()}</p>
+  <div class="archive-container">
+    <!-- 독립 실행형 성역 BGM 플레이어 -->
+    <div class="bgm-control-box" onclick="toggleArchiveBgm()">
+      <span id="bgmIcon">🎵</span>
+      <span id="bgmText">성역 BGM 재생</span>
+    </div>
+    <audio id="archiveAudio" loop src="${window.location.origin}/meditation.mp3"></audio>
+
+    <div class="archive-header">
+      <h1>✦ NOCTURNE COMPASS SACRED ARCHIVE ✦</h1>
+      <p>내담자: <strong style="color: #fff;">${userName}</strong> 님 | 신탁 일시: ${new Date().toLocaleString()}</p>
+    </div>
+    
+    <!-- 본문 내용 및 18장 카드 제단 복원 -->
+    <div class="archive-content">
+      ${resultClone.innerHTML}
+    </div>
+
+    <div class="footer-seal">
+      <p>✦ 본 문서는 녹턴 컴퍼스 성역에서 발행된 영구 소장용 독립 디지털 신탁록입니다. ✦</p>
+    </div>
   </div>
-  <div class="content-box">${finalVerdictText}</div>
-  <div class="footer">본 문서는 인터넷 연결 없이도 영구 열람 가능한 독립형 디지털 리포트입니다.</div>
+
+  <script>
+    let isPlaying = false;
+    const audio = document.getElementById('archiveAudio');
+    const bgmText = document.getElementById('bgmText');
+    const bgmIcon = document.getElementById('bgmIcon');
+
+    function toggleArchiveBgm() {
+      if (!isPlaying) {
+        audio.play().then(() => {
+          isPlaying = true;
+          bgmText.innerText = "성역 BGM 정지";
+          bgmIcon.innerText = "⏸️";
+        }).catch(err => {
+          console.error("음원 재생 실패:", err);
+          alert("브라우저 설정으로 인해 음원 재생이 차단되었습니다. 화면을 클릭 후 다시 눌러주세요.");
+        });
+      } else {
+        audio.pause();
+        isPlaying = false;
+        bgmText.innerText = "성역 BGM 재생";
+        bgmIcon.innerText = "🎵";
+      }
+    }
+  </script>
 </body>
 </html>`;
 
-  downloadHelper(`[녹턴컴퍼스]_${userName}_영구소장본_${dateStr}.html`, htmlContent, 'text/html;charset=utf-8');
-
-  alert("대표님의 소중한 신탁 기록이 저장되었습니다.\nPC/스마트폰의 [다운로드] 폴더를 확인해 주십시오.");
+  downloadHelper(`[녹턴컴퍼스]_${userName}_영구소장본_${dateStr}.html`, completeHtml, 'text/html;charset=utf-8');
+  alert("대표님의 소중한 신탁 기록이 [BGM 플레이어 + 18장 카드 제단]과 함께 완벽하게 저장되었습니다.\n다운로드된 HTML 파일을 열어 BGM을 켜보세요!");
 }
 
 // 파일 다운로드 브라우저 헬퍼
