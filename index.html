@@ -1926,7 +1926,7 @@ function copyConsultLink() {
       localStorage.setItem("NOCTURNE_ARCHIVE_LATEST", JSON.stringify(backupData));
 
       // 화면 어디서든 즉시 터지는 시스템 알림창
-      alert("✦ [신탁 박제 완료]\n이번 여정의 질문과 해석 전 궤적이 안전하게 저장되었습니다.\n언제든 이 기기에서 다시 복기하실 수 있습니다.");
+      alert("✦ [신탁 영구 봉인 완료]\n이번 여정의 질문과 해석 전 궤적이 성역에 안전하게 보존되었습니다.\n언제든 이 기기에서 다시 열람하실 수 있습니다.");
 
       triggerPwaGuide();
     } catch (err) {
@@ -1981,13 +1981,13 @@ function copyConsultLink() {
     if (viewer) viewer.style.display = "none";
   }
 </script>
- <!-- [녹턴 컴퍼스] 모바일 최적화 박제 & 홈 추가 안내 바 -->
+ <!-- [녹턴 컴퍼스] 모바일 최적화 성역 보존 & 홈 추가 안내 바 -->
   <!-- 정돈된 하단 유틸리티 바 -->
 <div style="width: 100%; max-width: 500px; margin: 2rem auto 1rem; display: flex; flex-direction: column; gap: 0.7rem; align-items: center;">
   
   <!-- 재방문 고객용 은은한 복기 버튼 (시선 분산 방지) -->
   <button type="button" onclick="openArchiveModal()" style="background: rgba(212, 178, 118, 0.08); border: 1px solid rgba(212, 178, 118, 0.25); color: #cbb282; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; letter-spacing: 0.02em;">
-    📜 최근 박제된 신탁 기록 복기하기
+    ✦ 성역에 보존된 이전 신탁 기록 열람하기
   </button>
 
   <!-- 가볍고 간결한 최상단 이동 버튼 -->
@@ -2011,7 +2011,7 @@ function copyConsultLink() {
 <!-- 상단 또는 하단에서 언제든 열람 가능한 복기 버튼 -->
   
 
-  <!-- 박제 기록 열람 서책 모달 (팝업창) -->
+  <!-- 영구 신탁 기록 열람 서책 모달 (팝업창) -->
   <div id="archiveModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
     <div style="background: #0d121d; border: 1px solid #d4b276; border-radius: 12px; width: 100%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
       <div style="padding: 1.2rem; border-bottom: 1px solid rgba(212, 178, 118, 0.2); display: flex; justify-content: space-between; align-items: center;">
