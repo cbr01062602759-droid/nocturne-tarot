@@ -1787,7 +1787,8 @@ function copyConsultLink() {
       card1: (c1 && typeof c1 === 'object' ? (c1.name || c1.title || c1.card) : c1) || '',
       card2: (c2 && typeof c2 === 'object' ? (c2.name || c2.title || c2.card) : c2) || '',
       card3: (c3 && typeof c3 === 'object' ? (c3.name || c3.title || c3.card) : c3) || '',
-      userName: userName || '내담자'
+      userName: userName || '내담자',
+    userBirth: document.getElementById('certUserBirth')?.innerText || document.getElementById('cUserBirth')?.value || ''
     };
 
     let response = null;
@@ -1968,6 +1969,7 @@ function copyConsultLink() {
         body: JSON.stringify({
           step: 'synthesis',
           userName: userName,
+          userBirth: document.getElementById('certUserBirth')?.innerText || document.getElementById('cUserBirth')?.value || '',
           allCards: allCardsData
         })
       });
