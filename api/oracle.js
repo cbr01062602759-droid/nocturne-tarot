@@ -41,16 +41,18 @@ export default async function handler(req, res) {
 
   let prompt = '';
 
-  if (step === 'synthesis') {
+  if (step === 'synthesis') {  <<<<<<<-------------------------------------------------------------이 위치인 것 같은데, 몇번째 줄에 추가 및 수정?                
     // ✦ 18장 전체 총운 매트릭스 피날레 (동서양 천문 융합 22% 예정론 가미)
     const allCardsSummary = bodyData.allCards
       ? bodyData.allCards.map(c => `[${c.label}: ${c.cardName}]`).join(', ')
       : '전체 18장 아르카나 매트릭스';
-
+  const star = bodyData.starData || { name: '익수(翼宿)', beast: '주작의 날개', realm: '남방 주작 (火)', desc: '비상을 향한 갈망과 고독한 자기 연마' };
+  const starInfoStr = `${star.name} [${star.realm}] (상징: ${star.beast}) - ${star.desc}`;
     prompt = `
 [내담자 프로필]
 - 내담자 성명: ${userName}
 - 선천적 천문 명식(생년월일/시): ${userBirth}
+- 천상열차분야지도 선천 본명수(本命宿): ${starInfoStr}
 - 전수 도출된 18장 아르카나 매트릭스: ${allCardsSummary}
 - 상담 진행 맥락 요약: ${JSON.stringify(bodyData.contextSummary || {})}
 
