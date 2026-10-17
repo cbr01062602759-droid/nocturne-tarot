@@ -1865,6 +1865,7 @@ function copyConsultLink() {
           step: 'synthesis',
           userName: userName,
           userBirth: document.getElementById('certUserBirth')?.innerText || document.getElementById('cUserBirth')?.value || '',
+          starData: calculateCheonsang28(document.getElementById('certUserBirth')?.innerText || document.getElementById('cUserBirth')?.value || ''),
           allCards: allCardsData
         })
       });
