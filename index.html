@@ -1872,10 +1872,13 @@ function copyConsultLink() {
       if (res.ok) {
         const finalData = await res.json();
         const text = finalData.finalVerdict || finalData.verdictNarrative;
-        if (text) {
-          narrativeEl.innerHTML = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-          return;
-        }
+    if (text) {
+      const birthVal = document.getElementById('certUserBirth')?.innerText || document.getElementById('cUserBirth')?.value || '';
+      const starData = calculateCheonsang28(birthVal);
+      const sealHtml = renderSacredSealHtml(starData);
+      narrativeEl.innerHTML = sealHtml + text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      return;
+    }
       }
       throw new Error("Invalid response format");
     } catch (err) {
@@ -2034,7 +2037,85 @@ function openCardLightbox(imgSrc) {
     lightbox.style.display = 'flex';
   }
 }
+// ✦ [천상열차분야지도 28수(本命宿) 정밀 역학 DB]
+const CHEONSANG_28_DB = [
+  // 동방청룡 칠사 (목/동)
+  { id: 0, char: "角", name: "각수(角宿)", beast: "청룡의 뿔", realm: "동방 청룡 (木)", desc: "새로운 생명의 시원(始原)이자 만물을 깨우는 서늘한 첫 파동" },
+  { id: 1, char: "亢", name: "항수(亢宿)", beast: "청룡의 목덜미", realm: "동방 청룡 (木)", desc: "굽히지 않는 지조와 타협 없는 신념의 엄격한 규율" },
+  { id: 2, char: "氐", name: "저수(氐宿)", beast: "청룡의 가슴", realm: "동방 청룡 (木)", desc: "근원적 뿌리를 내리는 인내와 풍요를 잉태하는 침묵" },
+  { id: 3, char: "房", name: "방수(房宿)", beast: "청룡의 복부", realm: "동방 청룡 (木)", desc: "귀인과 천복을 부르는 문호이자 내면의 성소" },
+  { id: 4, char: "心", name: "심수(心宿)", beast: "청룡의 심장", realm: "동방 청룡 (木)", desc: "타오르는 영혼의 불꽃이자 카르마를 관통하는 직관" },
+  { id: 5, char: "尾", name: "미수(尾宿)", beast: "청룡의 꼬리", realm: "동방 청룡 (木)", desc: "풍운을 일으키는 결단력과 흩어진 기운을 휘감는 추동력" },
+  { id: 6, char: "箕", name: "기수(箕宿)", beast: "청룡의 바람키", realm: "동방 청룡 (木)", desc: "혼돈을 털어내고 진실만을 남기는 서슬 퍼런 분별의 바람" },
+  // 북방현무 칠사 (수/북)
+  { id: 7, char: "斗", name: "두수(斗宿)", beast: "현무의 뱀머리", realm: "북방 현무 (水)", desc: "생과 사, 운명의 저울을 쥔 천상 나침반의 중심축" },
+  { id: 8, char: "牛", name: "우수(牛宿)", beast: "현무의 어깨", realm: "북방 현무 (水)", desc: "묵묵히 대지를 쟁기질하는 거대한 노동과 불굴의 집념" },
+  { id: 9, char: "女", name: "여수(女宿)", beast: "현무의 배", realm: "북방 현무 (水)", desc: "보이지 않는 질서를 직조하는 치밀한 규율과 절제의 장막" },
+  { id: 10, char: "虛", name: "허수(虛宿)", beast: "현무의 중심", realm: "북방 현무 (水)", desc: "완전한 무(無)의 심연 속에서 비로소 싹트는 절대적 지혜" },
+  { id: 11, char: "危", name: "위수(危宿)", beast: "현무의 벼랑", realm: "북방 현무 (水)", desc: "벼랑 끝의 각성과 위기 속에서 번뜩이는 초월적 생존 본능" },
+  { id: 12, char: "室", name: "실수(室宿)", beast: "현무의 성채", realm: "북방 현무 (水)", desc: "외부의 풍파를 막아내는 영혼의 견고한 요새와 지배력" },
+  { id: 13, char: "壁", name: "벽수(壁宿)", beast: "현무의 성벽", realm: "북방 현무 (水)", desc: "지식과 비의를 기록하고 보존하는 지고한 문헌의 수호자" },
+  // 서방백호 칠사 (금/서)
+  { id: 14, char: "奎", name: "규수(奎宿)", beast: "백호의 꼬리", realm: "서방 백호 (金)", desc: "문장과 예술의 영감이 폭발하는 천상의 서책" },
+  { id: 15, char: "婁", name: "루수(婁宿)", beast: "백호의 다리", realm: "서방 백호 (金)", desc: "상처 입은 무리를 치유하고 공동체를 엮어내는 결속의 끈" },
+  { id: 16, char: "胃", name: "위수(胃宿)", beast: "백호의 위장", realm: "서방 백호 (金)", desc: "모든 시련을 삼켜 자양분으로 치환하는 강인한 소화력" },
+  { id: 17, char: "昴", name: "묘수(昴宿)", beast: "백호의 갈기", realm: "서방 백호 (金)", desc: "어둠 속을 꿰뚫는 일곱 개의 서슬 퍼런 영안(靈眼)" },
+  { id: 18, char: "畢", name: "필수(畢宿)", beast: "백호의 그물", realm: "서방 백호 (金)", desc: "흩어진 기회를 단 한 번에 포획하는 빈틈없는 포용망" },
+  { id: 19, char: "觜", name: "자수(觜宿)", beast: "백호의 머리", realm: "서방 백호 (金)", desc: "적막을 깨뜨리는 예리한 언변과 본질을 찌르는 통찰" },
+  { id: 20, char: "參", name: "삼수(參宿)", beast: "백호의 가슴", realm: "서방 백호 (金)", desc: "삼군을 호령하는 당당한 장군의 위엄과 돌파력" },
+  // 남방주작 칠사 (화/남)
+  { id: 21, char: "井", name: "정수(井宿)", beast: "주작의 머리", realm: "남방 주작 (火)", desc: "마르지 않는 영혼의 샘물이자 법도를 세우는 맑은 거울" },
+  { id: 22, char: "鬼", name: "귀수(鬼宿)", beast: "주작의 눈", realm: "남방 주작 (火)", desc: "이승과 저승의 경계를 넘나드는 신비로운 영적 안테나" },
+  { id: 23, char: "柳", name: "류수(柳宿)", beast: "주작의 부리", realm: "남방 주작 (火)", desc: "독기를 품은 바람 앞에서도 부러지지 않는 유연한 저항선" },
+  { id: 24, char: "星", name: "성수(星宿)", beast: "주작의 목", realm: "남방 주작 (火)", desc: "어둠 속에서 홀로 빛나는 고독한 등대이자 천상의 기준점" },
+  { id: 25, char: "張", name: "장수(張宿)", beast: "주작의 모이주머니", realm: "남방 주작 (火)", desc: "자신의 날개를 활짝 펼쳐 세상을 품는 장엄한 포용" },
+  { id: 26, char: "翼", name: "익수(翼宿)", beast: "주작의 날개", realm: "남방 주작 (火)", desc: "더 높은 지평을 향해 비상하는 날갯짓과 고독한 자기 연마" },
+  { id: 27, char: "軫", name: "진수(軫宿)", beast: "주작의 꼬리", realm: "남방 주작 (火)", desc: "바람을 타고 빠르게 국면을 전환하는 신속한 전차의 바퀴" }
+];
 
+// 생년월일 기준 천상열차분야지도 28수 고유 본명수 산출 함수
+function calculateCheonsang28(birthStr) {
+  let clean = (birthStr || "").replace(/[^0-9]/g, "");
+  if (clean.length < 8) clean = "19951111"; // 기본 폴백
+  const y = parseInt(clean.substring(0, 4), 10);
+  const m = parseInt(clean.substring(4, 6), 10);
+  const d = parseInt(clean.substring(6, 8), 10);
+  
+  // 율리우스 일수 기반 전통 28수 요일·간지 궤적 매핑
+  const dateObj = new Date(y, m - 1, d);
+  const dayIndex = Math.floor(dateObj.getTime() / (1000 * 60 * 60 * 24));
+  const starIndex = Math.abs((dayIndex + 11) % 28);
+  return CHEONSANG_28_DB[starIndex];
+}
+
+// 고고학적 감성의 고대 상형 인장 컴포넌트 렌더러
+function renderSacredSealHtml(star) {
+  return `
+    <div style="margin: 0 auto 28px auto; max-width: 680px; background: radial-gradient(circle at 50% 30%, #162035 0%, #0a0e1a 100%); border: 1px solid #dfba73; border-radius: 12px; padding: 22px 20px; box-shadow: 0 0 25px rgba(223, 186, 115, 0.2); position: relative; overflow: hidden; text-align: center;">
+      <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; color: rgba(223, 186, 115, 0.04); font-weight: bold; pointer-events: none;">${star.char}</div>
+      <div style="font-size: 11px; letter-spacing: 3px; color: #dfba73; margin-bottom: 6px; text-transform: uppercase;">✦ Cheonsang Yeolcha Bunya Jido Archive ✦</div>
+      <div style="font-size: 13.5px; color: #94a3b8; margin-bottom: 15px;">조선 천상열차분야지도 선천 본명수(本命宿) 인장</div>
+      
+      <div style="display: flex; align-items: center; justify-content: center; gap: 18px; margin: 12px 0;">
+        <div style="width: 58px; height: 58px; border-radius: 8px; border: 1.5px solid #dfba73; display: flex; align-items: center; justify-content: center; background: rgba(223, 186, 115, 0.1); box-shadow: inset 0 0 10px rgba(223, 186, 115, 0.3);">
+          <span style="font-size: 32px; font-family: serif; color: #f6e05e; text-shadow: 0 0 8px rgba(246, 224, 94, 0.6);">${star.char}</span>
+        </div>
+        <div style="text-align: left;">
+          <div style="font-size: 18px; font-weight: bold; color: #fff; letter-spacing: 1px;">
+            ${star.name} <span style="font-size: 12.5px; color: #dfba73; font-weight: normal;">[${star.realm}]</span>
+          </div>
+          <div style="font-size: 12.5px; color: #cbd5e1; margin-top: 3px;">
+            상징 영수: <strong style="color: #dfba73;">${star.beast}</strong>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(223, 186, 115, 0.3); font-size: 13px; color: #e2e8f0; line-height: 1.6; word-break: keep-all;">
+        "${star.desc}"
+      </div>
+    </div>
+  `;
+}
 // 00~05문항 및 결과 카드를 포함한 모든 카드 이미지에 확대 기능 자동 장착
 document.addEventListener('click', function(e) {
   const target = e.target;
