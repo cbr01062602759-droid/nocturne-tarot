@@ -829,20 +829,24 @@
 
   <div class="oneline-nav-bar" style="margin-top: 25px;">
     <button type="button" class="btn-circle-prev" onclick="backToLastVipQuestion()" title="이전 질문 신탁으로 이동">◁</button>
-    <!-- [녹턴 캡슐형 통합 액션 바 : 저장 / 링크복사 / 복기] -->
-        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; flex: 1; align-items: center;">
-          <button type="button" class="btn-action" style="flex: 1.2; min-width: 130px; padding: 13px 14px; font-weight: bold; background: linear-gradient(135deg, #dfba73, #9d7a36); color: #000; border: none; border-radius: 30px; cursor: pointer; font-size: 13.5px; box-shadow: 0 4px 15px rgba(223, 186, 115, 0.25); display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="saveSacredArchive()">
-            <span>기록 저장</span> 💾
-          </button>
-          <button type="button" class="btn-action" style="flex: 1; min-width: 110px; padding: 13px 14px; background: rgba(223, 186, 115, 0.12); border: 1px solid rgba(223, 186, 115, 0.6); color: #dfba73; border-radius: 30px; cursor: pointer; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="copyConsultLink()">
-            <span>링크 복사</span> 🔗
-          </button>
-          <button type="button" class="btn-action" style="flex: 1; min-width: 110px; padding: 13px 14px; background: rgba(223, 186, 115, 0.12); border: 1px solid rgba(223, 186, 115, 0.6); color: #dfba73; border-radius: 30px; cursor: pointer; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="recallLastSealedArchive()">
-            <span>기록 복기</span> 📜
-          </button>
+<!-- [녹턴 단일 캡슐형 일체 터치 패널 바 : 저장 | 링크복사 | 복기] -->
+        <div style="margin-top: 20px; width: 100%; display: flex; justify-content: center;">
+          <div style="display: inline-flex; align-items: center; background: rgba(18, 26, 43, 0.95); border: 1px solid rgba(223, 186, 115, 0.7); border-radius: 40px; padding: 4px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
+            <button type="button" onclick="saveSacredArchive()" style="background: none; border: none; color: #dfba73; font-weight: 600; font-size: 13.5px; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              <span>기록 저장</span> 💾
+            </button>
+            <div style="width: 1px; height: 16px; background: rgba(223, 186, 115, 0.35);"></div>
+            <button type="button" onclick="copyConsultLink()" style="background: none; border: none; color: #dfba73; font-weight: 600; font-size: 13.5px; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              <span>링크 복사</span> 🔗
+            </button>
+            <div style="width: 1px; height: 16px; background: rgba(223, 186, 115, 0.35);"></div>
+            <button type="button" onclick="recallLastSealedArchive()" style="background: none; border: none; color: #dfba73; font-weight: 600; font-size: 13.5px; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              <span>기록 복기</span> 📜
+            </button>
+          </div>
         </div>
       </div>
-<div id="card-lightbox"><img id="lightbox-img" src="" alt="순수 카드 아트 감상"></div>
+<div id="card-lightbox" onclick="this.style.display='none'" style="cursor: pointer;"><img id="lightbox-img" src="" alt="순수 카드 아트 감상"></div>
 
 <script>
   /* ==========================================================================
@@ -2021,6 +2025,26 @@ function copyConsultLink() {
     const viewer = document.getElementById("archiveModal");
     if (viewer) viewer.style.display = "none";
   }
+// [전역 라이트박스] 화면 내 모든 카드 클릭 시 확대 감상 연결
+function openCardLightbox(imgSrc) {
+  const lightbox = document.getElementById('card-lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  if (lightbox && lightboxImg && imgSrc) {
+    lightboxImg.src = imgSrc;
+    lightbox.style.display = 'flex';
+  }
+}
+
+// 00~05문항 및 결과 카드를 포함한 모든 카드 이미지에 확대 기능 자동 장착
+document.addEventListener('click', function(e) {
+  const target = e.target;
+  // 타로 카드 이미지(cards/ 경로를 포함하거나 카드 컨테이너 내부 이미지)를 클릭했을 때
+  if (target && target.tagName === 'IMG' && (target.src.includes('/cards/') || target.closest('.card-slot') || target.closest('.matrix-grid-cluster') || target.closest('.result-card-img'))) {
+    if (target.id !== 'lightbox-img') { // 이미 확대된 모달 이미지가 아닐 때만 실행
+      openCardLightbox(target.src);
+    }
+  }
+});
 </script>
  <!-- [녹턴 컴퍼스] 모바일 최적화 성역 보존 & 홈 추가 안내 바 -->
   <!-- 정돈된 하단 유틸리티 바 -->
