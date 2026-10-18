@@ -1719,12 +1719,18 @@ function copyConsultLink() {
             clearTimeout(timeoutId);
 
             if (response.ok) {
-              const aiData = await response.json();
-              if (aiData.verdictNarrative) {
-                finalSwot = aiData;
-                window[cacheKey] = aiData; // 수신된 명문장을 브라우저 메모리에 즉시 박제
-              }
-            }
+      const aiData = await response.json();
+      const rawText = aiData.verdictNarrative || aiData.narrative || aiData.analysis || aiData.text || '';
+      if (rawText) {
+        finalSwot = {
+          verdictNarrative: rawText,
+          baseAnalysis: aiData.baseAnalysis || '',
+          actionAnalysis: aiData.actionAnalysis || '',
+          futureAnalysis: aiData.futureAnalysis || ''
+        };
+        window[cacheKey] = finalSwot;
+      }
+    }
           } catch (err) {
             console.warn("백엔드 통신 지연 또는 요청 에러. 원형 안전망으로 전환합니다.");
           }
@@ -1789,6 +1795,11 @@ function copyConsultLink() {
      [마스터 최종 피날레 서사 : Gemini 실시간 심층 신성 판결문]
      ========================================================================== */
   async function showFinalMasterSummary() {
+    // [가림막 해제] 피날레 진입 시 잔류 팝업, 모달, 카드 오버레이 전면 강제 제거
+  document.querySelectorAll('.modal, .card-modal, .card-overlay, .tarot-reveal-modal, #cardModal, #revealModal').forEach(el => {
+    el.style.display = 'none';
+  });
+  document.body.style.overflow = 'auto';
     document.getElementById('vipRitualContainer').style.display = 'none';
     document.getElementById('stageSection').style.display = 'none';
 
@@ -2121,7 +2132,7 @@ function renderSacredSealHtml(star) {
 document.addEventListener('click', function(e) {
   const target = e.target;
   // 타로 카드 이미지(cards/ 경로를 포함하거나 카드 컨테이너 내부 이미지)를 클릭했을 때
-  if (target && target.tagName === 'IMG' && (target.src.includes('/cards/') || target.closest('.card-slot') || target.closest('.matrix-grid-cluster') || target.closest('.result-card-img'))) {
+  if (target && target.tagName === 'IMG' && (target.src.includes('card') || target.closest('.card-slot') || target.closest('.card-box') || target.closest('.matrix-grid-cluster') || target.classList.contains('tarot-card-img') || target.closest('#vipRitualContainer'))) {
     if (target.id !== 'lightbox-img') { // 이미 확대된 모달 이미지가 아닐 때만 실행
       openCardLightbox(target.src);
     }
