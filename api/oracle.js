@@ -98,18 +98,17 @@ export default async function handler(req, res) {
 
     // 프론트엔드가 요구하는 키 규격에 맞춰 응답 반환
     if (step === 'synthesis') {
-      return res.status(200).json({ 
+      return res.status(200).json({
         finalVerdict: resultText,
-        verdictNarrative: resultText 
+        verdictNarrative: resultText
       });
     } else {
-      return res.status(200).json({ 
+      return res.status(200).json({
         narrative: resultText,
         verdictNarrative: resultText,
         analysis: resultText,
-        text: resultText 
+        text: resultText
       });
-    }
     }
 
   } catch (err) {
