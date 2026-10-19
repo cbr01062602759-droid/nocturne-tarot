@@ -1387,35 +1387,78 @@ function goToStep2Questions() {
    // ✦ 평생 소장용 진짜 웹 아카이브 박제 저장 (디자인 + 18장 카드 + BGM 플레이어 탑재)
 function saveSacredArchive() {
   try {
-    const userName = document.getElementById('certUserName')?.innerText || "내담자";
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const userName = document.getElementById('userName')?.value.trim() || document.getElementById('certUserName')?.innerText || "내담자";
+    const now = new Date();
+    const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+    const baseUrl = 'https://nocturne-tarot-chi.vercel.app/';
 
-    // 1. 순수 텍스트(TXT) 저장
-    const synthesisElem = document.querySelector('#synthesisBox') || document.querySelector('.synthesis-verdict-body');
-    const verdictRawText = synthesisElem ? synthesisElem.innerText : "녹턴 컴퍼스 신탁 기록";
-    const txtContent = "=================================================\n" +
-                       "  녹턴 컴퍼스 (NOCTURNE COMPASS) - 영구 신탁 리포트\n" +
-                       "=================================================\n" +
-                       "내담자: " + userName + " 님\n" +
-                       "보존일시: " + new Date().toLocaleString() + "\n\n" +
-                       "[나침반 마스터 최종 신성 판결문]\n" +
-                       "-------------------------------------------------\n" +
-                       verdictRawText + "\n\n" +
-                       "=================================================\n" +
-                       "* 본 기록은 녹턴 컴퍼스 성역 클라우드에 영구 보존됩니다.\n";
-    downloadHelper("[녹턴컴퍼스]_" + userName + "_신탁리포트_" + dateStr + ".txt", txtContent, 'text/plain;charset=utf-8');
+    // 1. 순수 텍스트(TXT) 저장 - 00~06 전 문항 누적 서사
+    let txtContent = "==================================================\n";
+    txtContent += "  녹턴 컴퍼스 (NOCTURNE COMPASS) - 영구 신탁 리포트\n";
+    txtContent += "==================================================\n";
+    txtContent += `내담자: ${userName} 님\n`;
+    txtContent += `보존일시: ${now.toLocaleString()}\n\n`;
 
-    // 2. 오프라인에서도 열리는 독립형 HTML 생성
-    const resultElem = document.getElementById('vipStep3Result') || document.getElementById('resultArea') || document.body;
+    if (window.vipRoundsData && window.vipRoundsData.length > 0) {
+      window.vipRoundsData.forEach(r => {
+        txtContent += `--------------------------------------------------\n`;
+        txtContent += `[문항 0${r.num}] ${r.question}\n`;
+        if (r.pickedCards) {
+          txtContent += `선택 카드: ` + r.pickedCards.map(c => c.name || c.data?.name).join(', ') + `\n`;
+        }
+        if (r.verdict) {
+          txtContent += `\n[신탁 본문]\n${r.verdict.narrative || r.verdict.verdictNarrative || ''}\n`;
+        }
+        txtContent += `\n`;
+      });
+    }
+
+    const synthesisElem = document.querySelector('#synthesisBox') || document.querySelector('.synthesis-verdict-body') || document.getElementById('finalMasterSummaryBox');
+    txtContent += `==================================================\n`;
+    txtContent += `[나침반 마스터 최종 신성 판결문]\n`;
+    txtContent += `--------------------------------------------------\n`;
+    txtContent += (synthesisElem ? synthesisElem.innerText : "녹턴 컴퍼스 신탁 기록") + `\n\n`;
+    txtContent += `* 본 기록은 녹턴 컴퍼스 성역 클라우드에 영구 보존됩니다.\n`;
+
+    downloadHelper(`[녹턴컴퍼스]_${userName}_신탁리포트_${dateStr}.txt`, txtContent, 'text/plain;charset=utf-8');
+
+    // 2. 오프라인에서도 열리는 영구소장본 HTML 생성 (00~05번 + 06 최종분석 + 카드 절대경로)
+    let roundsHtml = '';
+    if (window.vipRoundsData && window.vipRoundsData.length > 0) {
+      roundsHtml += `<div style="margin-bottom: 40px;">`;
+      roundsHtml += `<h2 style="color: #dfba73; text-align: center; border-bottom: 1px solid rgba(223,186,115,0.4); padding-bottom: 12px; margin-bottom: 24px;">◆ 00~05 개별 심층 신탁 아카이브 ◆</h2>`;
+      window.vipRoundsData.forEach(r => {
+        roundsHtml += `<div style="background: rgba(13, 19, 33, 0.85); border: 1px solid rgba(223, 186, 115, 0.25); border-radius: 10px; padding: 22px; margin-bottom: 24px;">`;
+        roundsHtml += `<h3 style="color: #f6e05e; font-size: 1.15rem; margin-top: 0; margin-bottom: 14px;">[문항 0${r.num}] ${r.question}</h3>`;
+        if (r.pickedCards && r.pickedCards.length > 0) {
+          roundsHtml += `<div style="display: flex; gap: 14px; justify-content: center; margin: 18px 0; flex-wrap: wrap;">`;
+          r.pickedCards.forEach(c => {
+            let cardImg = (c.data?.image || c.image || '').replace(/^\.?\//, '');
+            roundsHtml += `<div style="text-align: center; width: 110px;">
+              <img src="${baseUrl}${cardImg}" style="width: 100%; border-radius: 6px; border: 1px solid #dfba73; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+              <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">${c.name || c.data?.name}</div>
+            </div>`;
+          });
+          roundsHtml += `</div>`;
+        }
+        if (r.verdict) {
+          const vText = r.verdict.narrative || r.verdict.verdictNarrative || '';
+          roundsHtml += `<div style="white-space: pre-line; line-height: 1.8; color: #cbd5e1; font-size: 13.5px; background: rgba(0,0,0,0.35); padding: 16px; border-radius: 8px; border-left: 3px solid #dfba73;">${vText}</div>`;
+        }
+        roundsHtml += `</div>`;
+      });
+      roundsHtml += `</div>`;
+    }
+
+    // 06 피날레 제단 복사 및 이미지 절대경로 치환
+    const resultElem = document.getElementById('finalMasterSummaryBox') || document.getElementById('vipStep3Result') || document.getElementById('resultArea') || document.body;
     const resultClone = resultElem.cloneNode(true);
-    
-    // 불필요한 컨트롤 바 제거
     resultClone.querySelectorAll('.oneline-nav-bar, .tri-split-action-bar, button, .footer-info, footer').forEach(el => el.remove());
-
-    // 카드 이미지 절대경로 처리
+    
     resultClone.querySelectorAll('img').forEach(img => {
-      if (img.src && !img.src.startsWith('http')) {
-        img.src = new URL(img.getAttribute('src'), window.location.origin).href;
+      let rawSrc = img.getAttribute('src') || '';
+      if (!rawSrc.startsWith('http')) {
+        img.src = baseUrl + rawSrc.replace(/^\.?\//, '');
       }
     });
 
@@ -1425,9 +1468,8 @@ function saveSacredArchive() {
       '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">\n' +
       '<style>\n' +
       '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-      'body { background-color: #070a13; background-image: radial-gradient(circle at 50% 20%, #151d30 0%, #070a13 80%); color: #e2e8f0; font-family: "Pretendard", sans-serif; padding: 40px 15px; line-height: 1.8; display: flex; justify-content: center; position: relative; }\n' +
-      '.archive-container { max-width: 820px; width: 100%; background: rgba(13, 19, 33, 0.95); border: 1px solid #dfba73; border-radius: 12px; padding: 35px 25px; box-shadow: 0 0 40px rgba(223, 186, 115, 0.2); position: relative; }\n' +
-      '.bgm-control-box { position: absolute; top: 25px; right: 25px; cursor: pointer; display: flex; align-items: center; gap: 6px; background: rgba(223, 186, 115, 0.15); border: 1px solid #dfba73; padding: 6px 14px; border-radius: 20px; color: #dfba73; font-size: 13px; font-weight: bold; }\n' +
+      'body { background-color: #070a13; background-image: radial-gradient(circle at 50% 20%, #151d30 0%, #070a13 80%); color: #e2e8f0; font-family: "Pretendard", sans-serif; padding: 25px 15px; }\n' +
+      '.archive-container { max-width: 860px; width: 100%; margin: 0 auto; background: rgba(13, 19, 33, 0.95); border: 1px solid #dfba73; border-radius: 12px; padding: 35px 25px; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }\n' +
       '.archive-header { text-align: center; border-bottom: 1px solid rgba(223, 186, 115, 0.4); padding-bottom: 25px; margin-bottom: 30px; }\n' +
       '.archive-header h1 { color: #dfba73; font-size: 24px; letter-spacing: 2px; margin-bottom: 8px; }\n' +
       '.matrix-grid-cluster { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 20px; }\n' +
@@ -1437,42 +1479,52 @@ function saveSacredArchive() {
       '.footer-seal { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px dashed rgba(223, 186, 115, 0.3); color: #64748b; font-size: 12px; }\n' +
       '</style>\n</head>\n<body>\n' +
       '<div class="archive-container">\n' +
-      '  <div class="bgm-control-box" onclick="toggleArchiveBgm()"><span id="bgmIcon">🎵</span> <span id="bgmText">성역 BGM 재생</span></div>\n' +
-      '  <audio id="archiveAudio" loop src="' + window.location.origin + '/meditation.mp3"></audio>\n' +
       '  <div class="archive-header">\n' +
       '    <h1>✦ NOCTURNE COMPASS SACRED ARCHIVE ✦</h1>\n' +
       '    <p>내담자: <strong style="color: #fff;">' + userName + '</strong> 님 | 신탁 일시: ' + new Date().toLocaleString() + '</p>\n' +
       '  </div>\n' +
+      roundsHtml +
       '  <div class="archive-content">' + resultClone.innerHTML + '</div>\n' +
       '  <div class="footer-seal"><p>✦ 본 문서는 녹턴 컴퍼스 성역에서 발행된 영구 소장용 독립 디지털 신탁록입니다. ✦</p></div>\n' +
-      '</div>\n' +
-      '<script>\n' +
-      'let isPlaying = false;\n' +
-      'const audio = document.getElementById("archiveAudio");\n' +
-      'const bgmText = document.getElementById("bgmText");\n' +
-      'const bgmIcon = document.getElementById("bgmIcon");\n' +
-      'function toggleArchiveBgm() {\n' +
-      '  if (!isPlaying) {\n' +
-      '    audio.play().then(() => {\n' +
-      '      isPlaying = true;\n' +
-      '      bgmText.innerText = "성역 BGM 정지";\n' +
-      '      bgmIcon.innerText = "⏸️";\n' +
-      '    }).catch(err => { alert("화면을 클릭 후 다시 재생해 주세요."); });\n' +
-      '  } else {\n' +
-      '    audio.pause();\n' +
-      '    isPlaying = false;\n' +
-      '    bgmText.innerText = "성역 BGM 재생";\n' +
-      '    bgmIcon.innerText = "🎵";\n' +
-      '  }\n' +
-      '}\n' +
-      '<\/script>\n</body>\n</html>';
+      '</div>\n</body>\n</html>';
 
     downloadHelper("[녹턴컴퍼스]_" + userName + "_영구소장본_" + dateStr + ".html", completeHtml, 'text/html;charset=utf-8');
-    alert("소중한 신탁 기록이 [BGM 플레이어 + 18장 카드 제단]과 함께 저장되었습니다.");
+    alert("소중한 신탁 기록이 [00~05번 기록 + 18장 카드 제단]과 함께 영구 소장본으로 저장되었습니다.");
   } catch (err) {
     console.error("저장 중 오류 발생:", err);
-    alert("저장 처리 중 일시적인 오류가 발생했습니다.");
+    alert("저장 처리 중 일시적인 오류가 발생했습니다: " + err.message);
   }
+}
+
+// ◆ [기록복기] 완벽 연동: 다운로드한 .html 또는 .txt 파일 선택 시 즉시 새창 열람/복기
+function openArchiveModal() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.html,.txt';
+  fileInput.style.display = 'none';
+
+  fileInput.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const content = evt.target.result;
+      if (file.name.endsWith('.html')) {
+        const newWin = window.open('', '_blank');
+        newWin.document.write(content);
+        newWin.document.close();
+      } else {
+        alert("신탁 리포트 파일 복기 성공:\n\n" + content.substring(0, 1500) + "\n\n... (전체 내용은 콘솔에 로드되었습니다)");
+        console.log("복기된 신탁 리포트:\n", content);
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+
+  document.body.appendChild(fileInput);
+  fileInput.click();
+  fileInput.remove();
 }
 
 // 브라우저 다운로드 헬퍼
