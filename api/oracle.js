@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048
+          maxOutputTokens: 3500
         }
       })
     });
@@ -106,6 +106,9 @@ export default async function handler(req, res) {
       return res.status(200).json({
         narrative: resultText,
         verdictNarrative: resultText,
+        baseAnalysis: resultText.includes('### 1.') ? resultText.split('### 1.')[1].split('### 2.')[0].trim() : '',
+        actionAnalysis: resultText.includes('### 2.') ? resultText.split('### 2.')[1].split('### 3.')[0].trim() : '',
+        futureAnalysis: resultText.includes('### 3.') ? resultText.split('### 3.')[1].split('---')[0].trim() : '',
         analysis: resultText,
         text: resultText
       });
