@@ -759,7 +759,7 @@
       <div style="font-size: 15px; font-weight: bold; color: #dfba73; margin-bottom: 10px;">
         ✦ 나침반 종합 신탁 (The Sacred Verdict) &bull; 실전 결단 지침
       </div>
-      <div id="qSacredVerdictBody" style="line-height: 1.8; font-size: 14px; color: #cbd5e1; margin-bottom: 18px; word-break: keep-all;"></div>
+      <div id="qSacredVerdictBody" style="white-space: pre-line; line-height: 1.85; font-size: 14px; color: #cbd5e1; margin-bottom: 18px; word-break: keep-all;"></div>
 
       <table class="analysis-table" style="margin-bottom:0;">
         <tr>
@@ -1196,6 +1196,14 @@ function safeSetCardImage(imgEl, cardData) {
     const nameEl = document.getElementById(`name-${slotNum}`);
 
     safeSetCardImage(imgBack, cardData);
+   // [00~05번 상단 카드 클릭 시 라이트박스 확대 연결]
+    imgBack.style.cursor = 'pointer';
+    imgBack.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof openCardLightbox === 'function') {
+        openCardLightbox(imgBack.src);
+      }
+    };
     flipCard.style.display = 'block';
 
     setTimeout(() => {
@@ -1740,10 +1748,10 @@ function copyConsultLink() {
       finalSwot = getFallbackInterpretation(item.question, c1, c2, c3, userName);
     }
 
-    document.getElementById('qSacredVerdictBody').innerHTML = finalSwot.verdictNarrative;
-    document.getElementById('qTableBase').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c1.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.baseAnalysis}</span>`;
-        document.getElementById('qTableAction').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c2.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.actionAnalysis}</span>`;
-        document.getElementById('qTableFuture').innerHTML = `<strong style="color: #dfba73; font-size: 1.05em; display: inline-block; margin-bottom: 6px;">✦ ${c3.name}</strong><br><span style="line-height: 1.6; color: #e6e6e6;">${finalSwot.futureAnalysis}</span>`;
+    document.getElementById('qSacredVerdictBody').innerText = finalSwot.verdictNarrative || '';
+if (finalSwot.baseAnalysis) document.getElementById('qTableBase').innerText = finalSwot.baseAnalysis;
+if (finalSwot.actionAnalysis) document.getElementById('qTableAction').innerText = finalSwot.actionAnalysis;
+if (finalSwot.futureAnalysis) document.getElementById('qTableFuture').innerText = finalSwot.futureAnalysis;
 
     const isLast = (currentVipRoundIndex === vipRoundsData.length - 1);
     const nextBtn = document.getElementById('nextRoundBtn');
@@ -1795,10 +1803,29 @@ function copyConsultLink() {
      [마스터 최종 피날레 서사 : Gemini 실시간 심층 신성 판결문]
      ========================================================================== */
   async function showFinalMasterSummary() {
-    // [문지기 빅카드 및 잔류 오버레이 영구 소멸]
-    document.querySelectorAll('.modal, .card-modal, .card-overlay, .tarot-reveal-modal, #cardModal, #revealModal, div[style*="z-index"]').forEach(el => {
-      if (el.id !== 'vipRitualContainer' && el.id !== 'stageSection' && !el.closest('#questionVerdictBox') && !el.closest('#finalMasterSummaryBox')) {
-        el.remove(); // 단순 숨김이 아닌 DOM에서 즉각 삭제
+    // [문지기 빅카드 및 모든 잔류 오버레이·라이트박스 영구 소각]
+    const overlaySelectors = [
+      '.modal', '.card-modal', '.card-overlay', '.tarot-reveal-modal',
+      '#cardModal', '#revealModal', '#tarotModal', '#cardZoomModal',
+      '#lightbox', '#cardLightbox', '#globalTarotZoomModal',
+      '[id*="modal" i]', '[id*="lightbox" i]', '[id*="zoom" i]', '[id*="reveal" i]',
+      '[class*="modal" i]', '[class*="lightbox" i]', '[class*="overlay" i]'
+    ];
+    document.querySelectorAll(overlaySelectors.join(',')).forEach(el => {
+      if (!el.closest('#finalMasterSummaryBox') && el.id !== 'vipRitualContainer' && el.id !== 'stageSection') {
+        el.style.display = 'none';
+        el.remove(); // 돔에서 영구 삭제
+      }
+    });
+
+    // 화면 최상단을 덮고 있는 모든 고정(fixed/absolute) 레이어 강제 정리
+    document.querySelectorAll('body > div').forEach(el => {
+      if (el.id !== 'vipRitualContainer' && el.id !== 'stageSection' && !el.querySelector('#finalMasterSummaryBox')) {
+        const style = window.getComputedStyle(el);
+        const z = parseInt(style.zIndex, 10);
+        if ((style.position === 'fixed' || style.position === 'absolute') && z >= 100) {
+          el.remove();
+        }
       }
     });
     document.body.style.overflow = 'auto';
