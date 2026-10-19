@@ -1795,11 +1795,13 @@ function copyConsultLink() {
      [마스터 최종 피날레 서사 : Gemini 실시간 심층 신성 판결문]
      ========================================================================== */
   async function showFinalMasterSummary() {
-    // [가림막 해제] 피날레 진입 시 잔류 팝업, 모달, 카드 오버레이 전면 강제 제거
-  document.querySelectorAll('.modal, .card-modal, .card-overlay, .tarot-reveal-modal, #cardModal, #revealModal').forEach(el => {
-    el.style.display = 'none';
-  });
-  document.body.style.overflow = 'auto';
+    // [문지기 빅카드 및 잔류 오버레이 영구 소멸]
+    document.querySelectorAll('.modal, .card-modal, .card-overlay, .tarot-reveal-modal, #cardModal, #revealModal, div[style*="z-index"]').forEach(el => {
+      if (el.id !== 'vipRitualContainer' && el.id !== 'stageSection' && !el.closest('#questionVerdictBox') && !el.closest('#finalMasterSummaryBox')) {
+        el.remove(); // 단순 숨김이 아닌 DOM에서 즉각 삭제
+      }
+    });
+    document.body.style.overflow = 'auto';
     document.getElementById('vipRitualContainer').style.display = 'none';
     document.getElementById('stageSection').style.display = 'none';
 
