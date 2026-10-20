@@ -1196,14 +1196,25 @@ function safeSetCardImage(imgEl, cardData) {
     const nameEl = document.getElementById(`name-${slotNum}`);
 
     safeSetCardImage(imgBack, cardData);
-   // [00~05번 상단 카드 클릭 시 라이트박스 확대 연결]
-    imgBack.style.cursor = 'pointer';
-    imgBack.onclick = (e) => {
+   // [00~05번 상단 카드 클릭 시 라이트박스 확대 연결 - 직결 보강]
+    imgBack.style.cursor = 'zoom-in';
+    slotBox.style.cursor = 'zoom-in';
+
+    const triggerZoom = (e) => {
       e.stopPropagation();
-      if (typeof openCardLightbox === 'function') {
-        openCardLightbox(imgBack.src);
+      const currentSrc = imgBack.src || (cardData && (cardData.image || cardData.url));
+      const cardTitle = (cardData && (cardData.name || cardData.krName)) || nameEl?.innerText || '타로 카드';
+      
+      if (typeof window.openCardLightbox === 'function') {
+        window.openCardLightbox(currentSrc, cardTitle);
+      } else {
+        // 함수가 없어도 즉각 자체 생성하여 띄우는 절대 안전망
+        window.forceOpenLightbox(currentSrc, cardTitle);
       }
     };
+
+    imgBack.onclick = triggerZoom;
+    slotBox.onclick = triggerZoom;
     flipCard.style.display = 'block';
 
     setTimeout(() => {
@@ -1498,9 +1509,14 @@ function saveSacredArchive() {
 
 // ◆ [기록복기] 완벽 연동: 다운로드한 .html 또는 .txt 파일 선택 시 즉시 새창 열람/복기
 function openArchiveModal() {
+  // [기록복기 파일 탐색기 즉시 호출 및 새 창 열람]
+  const existingInput = document.getElementById('ncArchiveFileInput');
+  if (existingInput) existingInput.remove();
+
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
-  fileInput.accept = '.html,.txt';
+  fileInput.id = 'ncArchiveFileInput';
+  fileInput.accept = '.html,.htm';
   fileInput.style.display = 'none';
 
   fileInput.onchange = function(e) {
@@ -1510,17 +1526,21 @@ function openArchiveModal() {
     const reader = new FileReader();
     reader.onload = function(evt) {
       const content = evt.target.result;
-      if (file.name.endsWith('.html')) {
-        const newWin = window.open('', '_blank');
+      const newWin = window.open('', '_blank');
+      if (newWin) {
+        newWin.document.open();
         newWin.document.write(content);
         newWin.document.close();
       } else {
-        alert("신탁 리포트 파일 복기 성공:\n\n" + content.substring(0, 1500) + "\n\n... (전체 내용은 콘솔에 로드되었습니다)");
-        console.log("복기된 신탁 리포트:\n", content);
+        alert('브라우저 팝업 차단을 해제하셔야 복기 창이 열립니다.');
       }
     };
     reader.readAsText(file, 'utf-8');
   };
+
+  document.body.appendChild(fileInput);
+  fileInput.click(); // [핵심] 파일 선택 창 강제 호출 트리거
+}
 
   document.body.appendChild(fileInput);
   fileInput.click();
@@ -2316,5 +2336,67 @@ document.addEventListener('click', function(e) {
     </div>
   </div>
 </footer>
+ <script>
+// ==========================================
+// [1] 카드 클릭 확대 라이트박스 전역 안전망
+// ==========================================
+window.forceOpenLightbox = function(src, title) {
+  let box = document.getElementById('ncCardZoomModal');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'ncCardZoomModal';
+    box.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(5,7,15,0.92); z-index:9999999; justify-content:center; align-items:center; cursor:zoom-out; backdrop-filter:blur(6px);';
+    box.onclick = () => { box.style.display = 'none'; };
+    box.innerHTML = `
+      <div style="position:relative; text-align:center; max-width:90vw; max-height:90vh;" onclick="event.stopPropagation()">
+        <img id="ncCardZoomImg" src="${src}" style="max-width:85vw; max-height:80vh; border-radius:12px; border:2px solid #dfba73; box-shadow:0 0 35px rgba(223,186,115,0.5); object-fit:contain;" />
+        <div id="ncCardZoomTitle" style="margin-top:14px; font-size:16px; color:#dfba73; font-weight:bold; letter-spacing:1px;">${title || ''}</div>
+        <button onclick="document.getElementById('ncCardZoomModal').style.display='none'" style="position:absolute; top:-36px; right:-10px; background:none; border:none; color:#dfba73; font-size:32px; cursor:pointer;">&times;</button>
+      </div>
+    `;
+    document.body.appendChild(box);
+  } else {
+    document.getElementById('ncCardZoomImg').src = src;
+    document.getElementById('ncCardZoomTitle').innerText = title || '';
+    box.style.display = 'flex';
+  }
+};
+window.openCardLightbox = window.forceOpenLightbox;
+
+// ==========================================
+// [2] [기록복기] 파일 선택 창 무반응 즉각 해결
+// ==========================================
+window.triggerRestoreHistory = function() {
+  const existingInput = document.getElementById('ncRestoreHiddenInput');
+  if (existingInput) existingInput.remove();
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.id = 'ncRestoreHiddenInput';
+  fileInput.accept = '.html,.htm';
+  fileInput.style.display = 'none';
+
+  fileInput.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const content = evt.target.result;
+      const w = window.open('', '_blank');
+      if (w) {
+        w.document.open();
+        w.document.write(content);
+        w.document.close();
+      } else {
+        alert('팝업 차단을 허용해 주셔야 복기 창이 열립니다.');
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+
+  document.body.appendChild(fileInput);
+  fileInput.click();
+};
+</script>
 </body>
 </html>
