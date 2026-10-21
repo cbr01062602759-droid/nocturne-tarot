@@ -1481,7 +1481,7 @@ function saveSacredArchive() {
     const completeHtml = '<!DOCTYPE html>\n<html lang="ko">\n<head>\n' +
       '<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
       '<title>녹턴 컴퍼스 영구 소장본 - ' + userName + '</title>\n' +
-      document.head.querySelector('style')?.outerHTML + '\n</head>\n<body>\n' +
+      (document.head.querySelector('style')?.outerHTML || '') + '\n</head>\n<body>\n' +
       '<div class="archive-container" style="max-width: 860px; margin: 0 auto; padding: 24px;">\n' +
       roundsHtml + '\n' +
       '<div class="archive-content">' + resultClone.innerHTML + '</div>\n' +
@@ -1547,7 +1547,16 @@ function downloadHelper(filename, text, mimeType) {
   document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
-
+// [00~05번 로봇 환영사 완전 박멸 면도날 필터]
+function stripWelcomeGreeting(text) {
+  if (!text) return '';
+  return text
+    .replace(/^\s*\*{0,2}.*?녹턴\s*컴퍼스.*?리포트.*?\*{0,2}\s*/i, '')
+    .replace(/^\s*.*?님[,\s]*.*?환영합니다[\.!\s]*/i, '')
+    .replace(/^\s*.*?심연으로\s*들어오신\s*것을\s*환영합니다[\.!\s]*/i, '')
+    .replace(/^\s*.*?궤도에\s*오신\s*것을\s*환영합니다[\.!\s]*/i, '')
+    .trim();
+}
 // 링크 복사 헬퍼
 function copyConsultLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
@@ -1789,10 +1798,13 @@ function copyConsultLink() {
 
             if (response.ok) {
       const aiData = await response.json();
-      const rawText = aiData.verdictNarrative || aiData.narrative || aiData.analysis || aiData.text || '';
-      if (rawText) {
-        finalSwot = {
-          verdictNarrative: rawText,
+      let rawText = aiData.verdictNarrative || aiData.narrative || aiData.analysis || aiData.text || '';
+        if (typeof stripWelcomeGreeting === 'function') {
+          rawText = stripWelcomeGreeting(rawText);
+        }
+        if (rawText) {
+          finalSwot = {
+            verdictNarrative: rawText,
           baseAnalysis: aiData.baseAnalysis || '',
           actionAnalysis: aiData.actionAnalysis || '',
           futureAnalysis: aiData.futureAnalysis || ''
@@ -1809,7 +1821,9 @@ function copyConsultLink() {
       finalSwot = getFallbackInterpretation(item.question, c1, c2, c3, userName);
     }
 
-    document.getElementById('qSacredVerdictBody').innerText = finalSwot.verdictNarrative || '';
+    const cleanVerdict = (typeof stripWelcomeGreeting === 'function') ? stripWelcomeGreeting(finalSwot.verdictNarrative || '') : (finalSwot.verdictNarrative || '');
+        document.getElementById('qSacredVerdictBody').innerText = cleanVerdict;
+item.verdictText = cleanVerdict; // 소장본 생성용 vipRoundsData 객체에 정제된 신탁문 동기화   
 if (finalSwot.baseAnalysis) document.getElementById('qTableBase').innerText = finalSwot.baseAnalysis;
 if (finalSwot.actionAnalysis) document.getElementById('qTableAction').innerText = finalSwot.actionAnalysis;
 if (finalSwot.futureAnalysis) document.getElementById('qTableFuture').innerText = finalSwot.futureAnalysis;
