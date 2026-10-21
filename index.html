@@ -1435,69 +1435,63 @@ function saveSacredArchive() {
 
     // 2. 오프라인에서도 열리는 영구소장본 HTML 생성 (00~05번 + 06 최종분석 + 카드 절대경로)
     let roundsHtml = '';
-    if (window.vipRoundsData && window.vipRoundsData.length > 0) {
-      roundsHtml += `<div style="margin-bottom: 40px;">`;
-      roundsHtml += `<h2 style="color: #dfba73; text-align: center; border-bottom: 1px solid rgba(223,186,115,0.4); padding-bottom: 12px; margin-bottom: 24px;">◆ 00~05 개별 심층 신탁 아카이브 ◆</h2>`;
-      window.vipRoundsData.forEach(r => {
-        roundsHtml += `<div style="background: rgba(13, 19, 33, 0.85); border: 1px solid rgba(223, 186, 115, 0.25); border-radius: 10px; padding: 22px; margin-bottom: 24px;">`;
-        roundsHtml += `<h3 style="color: #f6e05e; font-size: 1.15rem; margin-top: 0; margin-bottom: 14px;">[문항 0${r.num}] ${r.question}</h3>`;
-        if (r.pickedCards && r.pickedCards.length > 0) {
-          roundsHtml += `<div style="display: flex; gap: 14px; justify-content: center; margin: 18px 0; flex-wrap: wrap;">`;
-          r.pickedCards.forEach(c => {
-            let cardImg = (c.data?.image || c.image || '').replace(/^\.?\//, '');
-            roundsHtml += `<div style="text-align: center; width: 110px;">
-              <img src="${baseUrl}${cardImg}" style="width: 100%; border-radius: 6px; border: 1px solid #dfba73; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-              <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">${c.name || c.data?.name}</div>
-            </div>`;
+    const targetRounds = (typeof vipRoundsData !== 'undefined') ? vipRoundsData : (window.vipRoundsData || []);
+
+    if (targetRounds && targetRounds.length > 0) {
+      roundsHtml += '<div style="margin-bottom: 40px;">';
+      roundsHtml += '<h2 style="color: #dfba73; text-align: center; border-bottom: 1px solid rgba(223,186,115,0.4); padding-bottom: 12px; margin-bottom: 24px; font-size: 1.4rem;">✦ [00~05번] 심층 성좌 신탁 궤적 ✦</h2>';
+      
+      targetRounds.forEach((r, idx) => {
+        const roundNum = r.num !== undefined ? r.num : idx;
+        const qTitle = r.question || r.title || `문항 0${roundNum}`;
+        const picked = r.pickedCards || r.cards || [];
+        const roundVerdict = r.verdictText || r.narrative || r.completedVerdict || r.oracleAnalysis || '';
+
+        roundsHtml += '<div style="background: rgba(13, 19, 33, 0.85); border: 1px solid rgba(223, 186, 115, 0.25); border-radius: 10px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">';
+        roundsHtml += `<h3 style="color: #f6e05e; font-size: 1.15rem; margin-top: 0; margin-bottom: 14px; border-bottom: 1px solid rgba(223,186,115,0.15); padding-bottom: 6px;">✦ [문항 0${roundNum}] ${qTitle}</h3>`;
+        
+        // 카드 3장 렌더링
+        if (picked.length > 0) {
+          roundsHtml += '<div style="display: flex; gap: 14px; justify-content: center; margin: 18px 0; flex-wrap: wrap;">';
+          picked.forEach(c => {
+            const cardObj = c.data || c;
+            let cardImg = (cardObj.image || cardObj.url || cardObj.img || '').replace(/^\.\//, '');
+            const cardName = cardObj.name || cardObj.krName || '타로 카드';
+            const fullImgSrc = cardImg.startsWith('http') ? cardImg : `${baseUrl}${cardImg}`;
+
+            roundsHtml += '<div style="text-align: center; width: 100px;">';
+            roundsHtml += `<img src="${fullImgSrc}" alt="${cardName}" style="width: 100%; border-radius: 6px; border: 1px solid #dfba73; box-shadow: 0 4px 10px rgba(0,0,0,0.6); cursor: zoom-in;" onclick="openArchiveLightbox(this.src, '${cardName}')">`;
+            roundsHtml += `<div style="color: #cbd5e1; font-size: 11px; margin-top: 6px; font-weight: bold;">${cardName}</div>`;
+            roundsHtml += '</div>';
           });
-          roundsHtml += `</div>`;
+          roundsHtml += '</div>';
         }
-        if (r.verdict) {
-          const vText = r.verdict.narrative || r.verdict.verdictNarrative || '';
-          roundsHtml += `<div style="white-space: pre-line; line-height: 1.8; color: #cbd5e1; font-size: 13.5px; background: rgba(0,0,0,0.35); padding: 16px; border-radius: 8px; border-left: 3px solid #dfba73;">${vText}</div>`;
+
+        // 해당 문항의 신탁 해석 본문
+        if (roundVerdict) {
+          roundsHtml += `<div style="color: #e2e8f0; font-size: 13.5px; line-height: 1.85; white-space: pre-line; word-break: keep-all; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(223,186,115,0.2);">${roundVerdict}</div>`;
         }
-        roundsHtml += `</div>`;
+
+        roundsHtml += '</div>';
       });
-      roundsHtml += `</div>`;
+      roundsHtml += '</div>';
     }
 
-    // 06 피날레 제단 복사 및 이미지 절대경로 치환
-    const resultElem = document.getElementById('finalMasterSummaryBox') || document.getElementById('vipStep3Result') || document.getElementById('resultArea') || document.body;
-    const resultClone = resultElem.cloneNode(true);
-    resultClone.querySelectorAll('.oneline-nav-bar, .tri-split-action-bar, button, .footer-info, footer').forEach(el => el.remove());
-    
-    resultClone.querySelectorAll('img').forEach(img => {
-      let rawSrc = img.getAttribute('src') || '';
-      if (!rawSrc.startsWith('http')) {
-        img.src = baseUrl + rawSrc.replace(/^\.?\//, '');
-      }
-    });
-
-    const completeHtml = '<!DOCTYPE html>\n' +
-      '<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-      '<title>녹턴 컴퍼스 - ' + userName + ' 님의 영구 신성 아카이브</title>\n' +
-      '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">\n' +
-      '<style>\n' +
-      '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-      'body { background-color: #070a13; background-image: radial-gradient(circle at 50% 20%, #151d30 0%, #070a13 80%); color: #e2e8f0; font-family: "Pretendard", sans-serif; padding: 25px 15px; }\n' +
-      '.archive-container { max-width: 860px; width: 100%; margin: 0 auto; background: rgba(13, 19, 33, 0.95); border: 1px solid #dfba73; border-radius: 12px; padding: 35px 25px; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }\n' +
-      '.archive-header { text-align: center; border-bottom: 1px solid rgba(223, 186, 115, 0.4); padding-bottom: 25px; margin-bottom: 30px; }\n' +
-      '.archive-header h1 { color: #dfba73; font-size: 24px; letter-spacing: 2px; margin-bottom: 8px; }\n' +
-      '.matrix-grid-cluster { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 20px; }\n' +
-      '@media (max-width: 600px) { .matrix-grid-cluster { grid-template-columns: repeat(3, 1fr); } }\n' +
-      '.matrix-grid-cluster img { width: 100%; border-radius: 6px; border: 1px solid rgba(223, 186, 115, 0.5); }\n' +
-      '.card-caption { font-size: 11px; color: #dfba73; text-align: center; margin-top: 4px; }\n' +
-      '.footer-seal { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px dashed rgba(223, 186, 115, 0.3); color: #64748b; font-size: 12px; }\n' +
-      '</style>\n</head>\n<body>\n' +
-      '<div class="archive-container">\n' +
-      '  <div class="archive-header">\n' +
-      '    <h1>✦ NOCTURNE COMPASS SACRED ARCHIVE ✦</h1>\n' +
-      '    <p>내담자: <strong style="color: #fff;">' + userName + '</strong> 님 | 신탁 일시: ' + new Date().toLocaleString() + '</p>\n' +
-      '  </div>\n' +
-      roundsHtml +
-      '  <div class="archive-content">' + resultClone.innerHTML + '</div>\n' +
-      '  <div class="footer-seal"><p>✦ 본 문서는 녹턴 컴퍼스 성역에서 발행된 영구 소장용 독립 디지털 신탁록입니다. ✦</p></div>\n' +
-      '</div>\n</body>\n</html>';
+    // 소장본 HTML 조립 및 다운로드
+    const completeHtml = '<!DOCTYPE html>\n<html lang="ko">\n<head>\n' +
+      '<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+      '<title>녹턴 컴퍼스 영구 소장본 - ' + userName + '</title>\n' +
+      document.head.querySelector('style')?.outerHTML + '\n</head>\n<body>\n' +
+      '<div class="archive-container" style="max-width: 860px; margin: 0 auto; padding: 24px;">\n' +
+      roundsHtml + '\n' +
+      '<div class="archive-content">' + resultClone.innerHTML + '</div>\n' +
+      '<div class="footer-seal" style="text-align:center; padding: 30px 0; color: #94a3b8; font-size: 12px;"><p>✦ 본 문서는 녹턴 컴퍼스 성역에서 발행된 영구 소장용 독립 디지털 신탁록입니다. ✦</p></div>\n' +
+      '</div>\n' +
+      '<!-- 소장본 단독 실행 라이트박스 -->\n' +
+      '<div id="ncArchiveLb" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(3,7,18,0.95); z-index:999999; justify-content:center; align-items:center; cursor:zoom-out;" onclick="this.style.display=\'none\'">' +
+      '<div style="text-align:center;" onclick="event.stopPropagation()"><img id="ncArchiveLbImg" src="" style="max-width:85vw; max-height:80vh; border-radius:10px; border:2px solid #dfba73; box-shadow:0 0 30px rgba(223,186,115,0.4);"><div id="ncArchiveLbCap" style="margin-top:12px; color:#dfba73; font-weight:bold; font-size:15px;"></div></div></div>\n' +
+      '<script>function openArchiveLightbox(s,n){const b=document.getElementById("ncArchiveLb");document.getElementById("ncArchiveLbImg").src=s;document.getElementById("ncArchiveLbCap").innerText=n||"";b.style.display="flex";}<\/script>\n' +
+      '</body>\n</html>';
 
     downloadHelper("[녹턴컴퍼스]_" + userName + "_영구소장본_" + dateStr + ".html", completeHtml, 'text/html;charset=utf-8');
     alert("소중한 신탁 기록이 [00~05번 기록 + 18장 카드 제단]과 함께 영구 소장본으로 저장되었습니다.");
@@ -1540,11 +1534,6 @@ function openArchiveModal() {
 
   document.body.appendChild(fileInput);
   fileInput.click(); // [핵심] 파일 선택 창 강제 호출 트리거
-}
-
-  document.body.appendChild(fileInput);
-  fileInput.click();
-  fileInput.remove();
 }
 
 // 브라우저 다운로드 헬퍼
