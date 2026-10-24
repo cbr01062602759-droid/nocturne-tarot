@@ -1928,9 +1928,9 @@ if (finalSwot.futureAnalysis) document.getElementById('qTableFuture').innerText 
     masterSec?.scrollIntoView({ behavior: 'smooth' });
     return; // 백엔드 통신 건너뛰고 0초 만에 이전 내용 그대로 복원
   }
-  }
-    // [문지기 빅카드 및 모든 잔류 오버레이·라이트박스 영구 소각]
-    const overlaySelectors = [
+
+  // [문지기 빅카드 및 모든 잔류 오버레이·라이트박스 영구 소각]
+  const overlaySelectors = [
       '.modal', '.card-modal', '.card-overlay', '.tarot-reveal-modal',
       '#cardModal', '#revealModal', '#tarotModal', '#cardZoomModal',
       '#lightbox', '#cardLightbox', '#globalTarotZoomModal',
@@ -2044,6 +2044,7 @@ if (finalSwot.futureAnalysis) document.getElementById('qTableFuture').innerText 
       const starData = calculateCheonsang28(birthVal);
       const sealHtml = renderSacredSealHtml(starData);
       narrativeEl.innerHTML = sealHtml + text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      window.lockedFinalSummaryHtml = narrativeEl.innerHTML; // 최초 1회 최종 신탁 영구 보존
       // [핵심] 최초 수신된 최종 신탁을 전역 캐시에 영구 박제 (앞뒤 이동 시 변동/지연 원천 차단)
       window.lockedFinalSummaryHtml = narrativeEl.innerHTML;
       return;
