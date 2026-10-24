@@ -1584,10 +1584,15 @@ function downloadHelper(filename, text, mimeType) {
 function stripWelcomeGreeting(text) {
   if (!text) return '';
   return text
+    // 1. 녹턴 컴퍼스 리포트 헤더/타이틀 형태 제거
     .replace(/^\s*\*{0,2}.*?녹턴\s*컴퍼스.*?리포트.*?\*{0,2}\s*/i, '')
-    .replace(/^\s*.*?님[,\s]*.*?환영합니다[\.!\s]*/i, '')
-    .replace(/^\s*.*?심연으로\s*들어오신\s*것을\s*환영합니다[\.!\s]*/i, '')
-    .replace(/^\s*.*?궤도에\s*오신\s*것을\s*환영합니다[\.!\s]*/i, '')
+    // 2. "안녕하십니까, ~님" 또는 "~님, 반갑습니다/환영합니다" 형태 제거
+    .replace(/^\s*(?:안녕\s*하십니까|반갑\s*습니다|환영\s*합니다)[,\s]*.*?(?:님|내담자).*?[\.!\n]+/i, '')
+    .replace(/^\s*.*?(?:님|내담자)[,\s]*(?:안녕\s*하십니까|반갑\s*습니다|환영\s*합니다)[\.!\n]+/i, '')
+    // 3. 03번에서 발생한 "운명의 밤길을 밝히는... 환영합니다" 전체 문장 영구 절단
+    .replace(/^\s*운명의\s*밤길을\s*밝히는.*?환영합니다[\.!\n]*/i, '')
+    // 4. 심연/성역/궤도 환영 문구 제거
+    .replace(/^\s*.*?(?:심연|성역|궤도)으로?\s*오신\s*것을\s*환영합니다[\.!\n]*/i, '')
     .trim();
 }
 // 링크 복사 헬퍼
@@ -1783,7 +1788,7 @@ function copyConsultLink() {
         if (!finalSwot) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
 
           const requestPayload = {
       question: (item.question && item.question.trim().length > 0)
