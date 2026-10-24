@@ -827,15 +827,15 @@
   
   <div class="matrix-grid-cluster cols-6" id="masterGalleryGrid"></div>
 
-  <!-- [네비게이션 & 단독 소장본 저장 바] 수직·수평 일치 정렬 -->
-    <div style="margin-top: 32px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 14px;">
-      <!-- 좌측 뒤로 가기 원형 버튼 (높이 및 중심선 완전 일치) -->
-      <button type="button" class="btn-circle-prev" onclick="backToLastVipQuestion()" title="이전 질문 신탁으로 이동" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(223, 186, 115, 0.4); background: rgba(13, 19, 33, 0.85); color: #dfba73; font-size: 20px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.3); padding: 0;">
-        ‹
+  <!-- [네비게이션 & 단독 소장본 저장 바] 수직·수평 일치 정렬 및 B형 디자인 적용 -->
+    <div style="margin-top: 36px; margin-bottom: 24px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 14px;">
+      <!-- B 디자인 완전 일치: 44px 원형 + 실버-블루 테두리 + 날렵한 ◁ 화살표 -->
+      <button type="button" onclick="backToLastVipQuestion()" title="이전 질문 신탁으로 이동" style="width: 44px; height: 44px; min-width: 44px; border-radius: 50%; border: 1.5px solid #8fa0b5; background: #0c1322; color: #8fa0b5; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.4); padding: 0;">
+        <span style="display: block; margin-right: 2px; font-size: 14px;">◁</span>
       </button>
 
-      <!-- 중앙 신탁 소장본 저장 버튼 (굵은 다운로드 SVG 탑재) -->
-      <button type="button" onclick="saveSacredArchive()" style="background: linear-gradient(135deg, #dfba73, #b8860b); color: #070b14; font-weight: 700; font-size: 15px; height: 44px; padding: 0 26px; border: none; border-radius: 24px; cursor: pointer; box-shadow: 0 0 20px rgba(223,186,115,0.45); display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: transform 0.2s;">
+      <!-- 중앙 신탁 소장본 저장 버튼 (황금 그라디언트 + 볼드 다운로드 아이콘) -->
+      <button type="button" onclick="saveSacredArchive()" style="background: linear-gradient(135deg, #dfba73, #b8860b); color: #070b14; font-weight: 700; font-size: 15px; height: 44px; padding: 0 28px; border: none; border-radius: 24px; cursor: pointer; box-shadow: 0 0 20px rgba(223,186,115,0.45); display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: transform 0.2s;">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#070b14" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
           <line x1="12" y1="3" x2="12" y2="15"></line>
           <polyline points="6 10 12 16 18 10"></polyline>
@@ -1400,10 +1400,9 @@ function saveSacredArchive() {
                      document.getElementById('certUserName')?.innerText?.trim() || '고윤정';
     const now = new Date();
     const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-    // Vercel 정규 절대 도메인 (오프라인 로컬 열람 시 액박 100% 원천 차단)
     const productionOrigin = 'https://nocturne-tarot-chi.vercel.app';
 
-    // 1. 00~05번 문항: 실제 상담 화면(3장 슬롯 제단 + 금빛 양피지 박스) 레이아웃 100% 동일 복제
+    // 1. 00~05번 문항: 실제 상담 화면과 100% 동일한 레이아웃 복제
     let roundsHtml = '';
     const targetRounds = (typeof vipRoundsData !== 'undefined') ? vipRoundsData : (window.vipRoundsData || []);
 
@@ -1424,33 +1423,40 @@ function saveSacredArchive() {
 
         roundsHtml += `
           <div style="background: rgba(13, 22, 38, 0.92); border: 1px solid rgba(223, 186, 115, 0.35); border-radius: 16px; padding: 26px; margin-bottom: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
-            <!-- 문항 타이틀 바 -->
-            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px dashed rgba(223,186,115,0.3); padding-bottom: 14px; margin-bottom: 22px;">
+            <div style="border-bottom: 1px dashed rgba(223,186,115,0.3); padding-bottom: 14px; margin-bottom: 22px;">
               <h3 style="color: #dfba73; font-size: 1.15rem; margin: 0; line-height: 1.5; font-weight: 700;">
                 ✦ [문항 0${roundNum}] ${qTitle}
               </h3>
             </div>
 
-            <!-- 원본 제단 3장 카드 슬롯 -->
+            <!-- 제단 3장 카드 슬롯 (액박 원천 해결: 정확한 이미지 파일 경로 조립) -->
             <div style="display: flex; gap: 16px; justify-content: center; margin: 22px 0; flex-wrap: wrap;">
               ${picked.map((c, cIdx) => {
                 const cardObj = c.data || c;
-                let cardImg = (cardObj.image || cardObj.url || cardObj.img || '').replace(/^\.?\//, '');
+                // 안전한 이미지 파일명 확보
+                let rawImg = cardObj.image || cardObj.url || cardObj.img || '';
+                if (!rawImg && cardObj.files && cardObj.files.length > 0) rawImg = 'cards/' + cardObj.files[0];
+                if (!rawImg && cardObj.file) rawImg = 'cards/' + cardObj.file;
+                
+                rawImg = rawImg.replace(/^\.?\//, '');
+                if (rawImg && !rawImg.startsWith('cards/') && !rawImg.startsWith('http')) {
+                  rawImg = 'cards/' + rawImg;
+                }
+                const fullImgSrc = rawImg.startsWith('http') ? rawImg : `${productionOrigin}/${rawImg}`;
                 const cardName = cardObj.name || cardObj.krName || '타로 카드';
-                const fullImgSrc = cardImg.startsWith('http') ? cardImg : `${productionOrigin}/${cardImg}`;
                 const labelText = slotLabels[cIdx] || `슬롯 0${cIdx + 1}`;
 
                 return `
                   <div style="text-align: center; width: 110px;">
-                    <div style="font-size: 11.5px; color: #dfba73; margin-bottom: 6px; font-weight: bold; letter-spacing: 0.5px;">${labelText}</div>
-                    <img src="${fullImgSrc}" alt="${cardName}" style="width: 100%; border-radius: 8px; border: 2px solid #dfba73; box-shadow: 0 6px 18px rgba(0,0,0,0.7); cursor: zoom-in;" onclick="openArchiveLightbox(this.src, '${cardName}')">
+                    <div style="font-size: 11.5px; color: #dfba73; margin-bottom: 6px; font-weight: bold;">${labelText}</div>
+                    <img src="${fullImgSrc}" alt="${cardName}" class="sacred-archive-card-img" style="width: 100%; border-radius: 8px; border: 2px solid #dfba73; box-shadow: 0 6px 18px rgba(0,0,0,0.7); cursor: zoom-in;" onclick="openArchiveLightbox(this.src, '${cardName}')">
                     <div style="color: #cbd5e1; font-size: 12px; margin-top: 8px; font-weight: 600; line-height: 1.3;">${cardName}</div>
                   </div>
                 `;
               }).join('')}
             </div>
 
-            <!-- 원본 상담 화면의 신탁 본문 박스 -->
+            <!-- 신탁 본문 양피지 박스 -->
             <div style="background: rgba(7, 11, 20, 0.75); border: 1px solid rgba(223, 186, 115, 0.22); border-radius: 12px; padding: 22px 24px; margin-top: 22px;">
               <div style="color: #dfba73; font-weight: bold; font-size: 13.5px; margin-bottom: 12px; letter-spacing: 1px;">
                 ✦ 나침반 종합 신탁 (The Sacred Verdict) · 실전 결단 지침
@@ -1463,7 +1469,7 @@ function saveSacredArchive() {
       roundsHtml += '</div>';
     }
 
-    // 2. 06번 최종 피날레 화면: 18장 매트릭스 그리드와 최종 판결문 정밀 추출
+    // 2. 06번 최종 피날레 화면: 18장 매트릭스 그리드 복제 및 이미지 절대경로 치환
     const galleryElem = document.getElementById('masterGalleryGrid') || 
                         document.querySelector('.matrix-grid-cluster') || 
                         document.getElementById('masterGallery6-id');
@@ -1474,12 +1480,16 @@ function saveSacredArchive() {
     let finaleHtml = '';
     if (galleryElem) {
       let galleryCloned = galleryElem.cloneNode(true);
-      // 18장 카드의 이미지도 전부 절대경로로 강제 치환
+      // 18장 카드에 절대경로 주입 및 클릭 확대 클래스 부여
       galleryCloned.querySelectorAll('img').forEach(img => {
-        const srcAttr = img.getAttribute('src') || '';
+        let srcAttr = img.getAttribute('src') || '';
+        srcAttr = srcAttr.replace(/^\.?\//, '');
         if (srcAttr && !srcAttr.startsWith('http')) {
-          img.src = `${productionOrigin}/${srcAttr.replace(/^\.?\//, '')}`;
+          if (!srcAttr.startsWith('cards/')) srcAttr = 'cards/' + srcAttr;
+          img.src = `${productionOrigin}/${srcAttr}`;
         }
+        img.classList.add('sacred-archive-card-img');
+        img.style.cursor = 'zoom-in';
       });
       finaleHtml += '<div style="margin-bottom: 32px;">' + galleryCloned.outerHTML + '</div>';
     }
@@ -1487,7 +1497,7 @@ function saveSacredArchive() {
       finaleHtml += '<div style="background: rgba(13, 22, 38, 0.92); border: 1px solid rgba(223, 186, 115, 0.35); border-radius: 16px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">' + verdictElem.innerHTML + '</div>';
     }
 
-    // 3. 사이트 원본 CSS 스타일 태그 전체 복제 및 주입
+    // 3. CSS 스타일 태그 전체 복제 및 오프라인 전용 라이트박스 스크립트 장착
     const allStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
       .map(el => el.outerHTML)
       .join('\n');
@@ -1519,10 +1529,24 @@ function saveSacredArchive() {
       '<p>✦ 본 문서는 녹턴 컴퍼스 성역에서 발행된 영구 소장용 독립 디지털 신탁록입니다. ✦</p>' +
       '</div>\n' +
       '</div>\n' +
-      '<!-- 오프라인 라이트박스 -->\n' +
+      '<!-- 오프라인 전용 라이트박스 모달 -->\n' +
       '<div id="ncArchiveLb" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(3,7,18,0.95); z-index:999999; justify-content:center; align-items:center; cursor:zoom-out;" onclick="this.style.display=\'none\'">' +
-      '<div style="text-align:center;" onclick="event.stopPropagation()"><img id="ncArchiveLbImg" src="" style="max-width:85vw; max-height:80vh; border-radius:10px; border:2px solid #dfba73; box-shadow:0 0 30px rgba(223,186,115,0.4);"><div id="ncArchiveLbCap" style="margin-top:12px; color:#dfba73; font-weight:bold; font-size:15px;"></div></div></div>\n' +
-      '<script>function openArchiveLightbox(s,n){const b=document.getElementById("ncArchiveLb");document.getElementById("ncArchiveLbImg").src=s;document.getElementById("ncArchiveLbCap").innerText=n||"";b.style.display="flex";}<\/script>\n' +
+      '<div style="text-align:center;" onclick="event.stopPropagation()">' +
+      '<img id="ncArchiveLbImg" src="" style="max-width:85vw; max-height:80vh; border-radius:10px; border:2px solid #dfba73; box-shadow:0 0 30px rgba(223,186,115,0.4);">' +
+      '<div id="ncArchiveLbCap" style="margin-top:12px; color:#dfba73; font-weight:bold; font-size:15px;"></div>' +
+      '</div></div>\n' +
+      '<script>' +
+      'function openArchiveLightbox(s,n){const b=document.getElementById("ncArchiveLb");document.getElementById("ncArchiveLbImg").src=s;document.getElementById("ncArchiveLbCap").innerText=n||"";b.style.display="flex";}\n' +
+      '// 18장 전체 카드 클릭 이벤트 위임 등록\n' +
+      'document.addEventListener("DOMContentLoaded", function() {\n' +
+      '  document.querySelectorAll(".archive-finale img").forEach(function(img) {\n' +
+      '    img.style.cursor = "zoom-in";\n' +
+      '    img.addEventListener("click", function() {\n' +
+      '      openArchiveLightbox(this.src, this.alt || "성역 아르카나");\n' +
+      '    });\n' +
+      '  });\n' +
+      '});\n' +
+      '<\/script>\n' +
       '</body>\n</html>';
 
     // 다운로드 실행
@@ -2044,10 +2068,9 @@ if (finalSwot.futureAnalysis) document.getElementById('qTableFuture').innerText 
       const starData = calculateCheonsang28(birthVal);
       const sealHtml = renderSacredSealHtml(starData);
       narrativeEl.innerHTML = sealHtml + text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-      window.lockedFinalSummaryHtml = narrativeEl.innerHTML; // 최초 1회 최종 신탁 영구 보존
-      // [핵심] 최초 수신된 최종 신탁을 전역 캐시에 영구 박제 (앞뒤 이동 시 변동/지연 원천 차단)
-      window.lockedFinalSummaryHtml = narrativeEl.innerHTML;
-      return;
+// [핵심] 최초 수신된 최종 신탁을 전역 캐시에 영구 박제 (앞뒤 이동 시 변동/지연 원천 차단)
+window.lockedFinalSummaryHtml = narrativeEl.innerHTML;
+return;
     }
       }
       throw new Error("Invalid response format");
