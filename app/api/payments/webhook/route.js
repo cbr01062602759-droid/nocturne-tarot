@@ -8,19 +8,21 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { eventType, data } = body;
+    // 💡 포트원 V1 웹훅 표준 파라미터 추출
+    const { imp_uid, merchant_uid, status } = body;
     
-    console.log("포트원 웹훅 수신 성공:", eventType);
+    console.log(`[포트원 V1 웹훅 수신] 주문번호: ${merchant_uid}, 결제번호: ${imp_uid}, 상태: ${status}`);
 
-    if (eventType === "Transaction.Paid" || data?.status === "PAID") {
-      const paymentId = data.paymentId;
-      const orderId = data.orderId;
-      console.log(`[결제 완료 보고] 주문번호: ${orderId}, 결제번호: ${paymentId}`);
+    // 결제 완료 상태 확인 (V1 기준 "paid")
+    if (status === "paid") {
+      console.log(`[결제 완료 승인] 주문번호 ${merchant_uid}에 대한 처리 로직 실행`);
+      // TODO: 여기에 DB 업데이트 등 비즈니스 로직 작성
     }
 
+    // 포트원 서버로 정상 수신(200 OK) 응답 반환
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("웹훅 처리 중 오류 발생:", error);
+    console.error("V1 웹훅 처리 중 오류 발생:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
