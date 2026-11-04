@@ -722,15 +722,17 @@
       입금 내역 확인 및 접수가 완료되면 녹턴 컴퍼스의 신탁 제단이 열립니다.
     </div>
 
-    <div class="sealed-info-card">
-      <div>✦ 내담자: <strong id="modalName">-</strong> 님</div>
-      <div>✦ VIP 전용 입금 계좌: <strong style="color:#dfba73; font-size:13.5px;">기업은행 051-107984-01-012</strong> (예금주: 정병로)</div>
-      <div style="font-size:11.5px; color:#cbd5e1; margin-top:4px;">* 입금 완료 후 아래 버튼을 누르시면 VIP 등급 선택 및 질문 작성으로 이어집니다.</div>
+    <div class="sealed-info-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(223, 186, 115, 0.3); border-radius: 8px; padding: 15px;">
+    <div>내담자: <strong id="modalName"></strong></div>
+    <div style="font-size:13px; color:#dfba73; font-weight:bold; margin-top:8px; margin-bottom:6px;">✦ 녹턴 컴퍼스 VIP 안전 결제 안내</div>
+    <div style="font-size:13px; color:#cbd5e1; line-height: 1.5;">
+        보안 및 안전한 결제를 위해 개인 계좌 이체 대신 <strong style="color:#fff;">신용카드</strong> 및 <strong style="color:#fff;">가상계좌</strong> 결제를 지원합니다. 결제 완료 즉시 시스템이 자동으로 입금을 확인합니다.
     </div>
+</div>
 
-    <button class="btn-action" style="width: 100%; margin-bottom: 15px;" onclick="closeModalAndGoToStep1()">
-      확인 후 VIP 등급 선택 및 질문 작성으로 이동
-    </button>
+<button class="btn-action" style="width: 100%; margin-top: 15px;" onclick="closeModalAndGotoStep()">
+    안전 결제 및 VIP 신중 질문 작성하기 ▶
+</button>
 
     <div style="text-align: center;">
       <a href="https://open.kakao.com/o/sNpxAPLi" target="_blank" class="btn-kakao-sub-subtle">
