@@ -631,7 +631,7 @@
 </div>
 
 <button class="btn-action" style="width: 100%; margin-top: 15px;" onclick="payAndGotoQuestions()">
-    안전 결제 및 VIP 신중 질문 작성하기 ▶
+    VIP 등급 선택 및 안전결제하기 ▶
 </button>
 </div>
 
@@ -1329,47 +1329,89 @@ document.getElementById('rCardText3').innerText = `"${getCardDesc(c3, c3.text3)}
     }
   }
 
-function payAndGoToQuestions() {
-  try {
-    // ✦ 1. 이미 결제를 마친 내담자인지 확인 (뒤로가기 후 재진입 대응)
-    if (sessionStorage.getItem('nocturne_paid') === 'true') {
-      alert("이미 결제가 확인되었습니다. 질문 작성 페이지로 바로 이동합니다.");
-      goToStep2Questions();
-      return;
+function payAndGotoQuestions() {
+    try {
+        // 포트원(구 아임포트) 초기화
+        IMP.init("imp5635716");
+
+        const merchant_uid = `nocturne_${Date.now()}`;
+
+        IMP.request_pay({
+            channel_key: "channel-key-186a7c9f-9b2c-6281-9d99-id7f6b14646",
+            pay_method: "card", // 필요 시 다중 결제수단 설정 가능
+            merchant_uid: merchant_uid,
+            name: "녹턴 컴퍼스 VIP 신중 선택 리포트",
+            amount: 1000, // 상용 서비스 시 실제 금액으로 변경
+            buyer_email: "guest@nocturnecompass.com",
+            buyer_name: document.getElementById("modalName") ? document.getElementById("modalName").innerText : "내담자",
+            buyer_tel: "010-0000-0000",
+        }, function (rsp) {
+            if (rsp.success) {
+                // [결제 성공 후 B 화면으로 전환하는 로직]
+                console.log("[결제 성공 승인 완료]", rsp.merchant_uid);
+                
+                // 세션 스토리지에 결제 완료 상태 저장
+                sessionStorage.setItem('nocturne_paid', 'true');
+                sessionStorage.setItem('nocturne_paid_uid', rsp.merchant_uid);
+
+                // 첫 번째 모달 닫기
+                const sealedModal = document.getElementById('sealedModal');
+                if (sealedModal) sealedModal.style.display = 'none';
+
+                // B 화면(접수 완료 및 질문 작성 안내 모달)의 타이틀과 내용 변경 로직 실행
+                // 기존 모달의 헤드 타이틀 및 본문 내용을 대표님 기획안에 맞게 동적 세팅
+                showReceiptCompletedModal();
+
+            } else {
+                alert("결제에 실패하였습니다. 사유: " + rsp.error_msg);
+            }
+        });
+    } catch (e) {
+        console.error("결제 창 호출 중 오류 발생:", e);
+        alert("결제 모듈을 불러오는 중 문제가 발생했습니다.");
     }
+}
 
-    const IMP = window.IMP;
-    IMP.init("imp65635716");
+// 결제 완료 후 'B 화면' 형태로 모달을 리폼하여 띄워주는 헬퍼 함수
+function showReceiptCompletedModal() {
+    // 기존 모달 요소를 재활용하거나 새로 띄우기
+    const sealedModal = document.getElementById('sealedModal');
+    if (sealedModal) {
+        // 타이틀 변경: "접수 완료"
+        const titleEl = sealedModal.querySelector('.sealed-title');
+        if (titleEl) titleEl.innerText = "접수 완료";
 
-    const merchantUid = `nocturne_${Date.now()}`;
+        // 설명문 통합 및 2줄 중앙 배치
+        const descEl = sealedModal.querySelector('.sealed-desc');
+        const nameVal = document.getElementById("modalName") ? document.getElementById("modalName").innerText : "내담자";
+        if (descEl) {
+            descEl.innerHTML = `
+                <div style="text-align: center; line-height: 1.6; font-size: 15px; color: #fff; margin: 20px 0;">
+                    접수가 완료되었습니다.<br>
+                    <strong style="color: #dfba73;">${nameVal}</strong>님을 위한 녹턴 컴퍼스의 신탁제단이 열립니다.
+                </div>
+            `;
+        }
 
-    // 헥토파이낸셜 V1 표준 결제창 호출
-    IMP.request_pay({
-      channelKey: "channel-key-18aa9c67-9b2c-4201-9d99-3d6716b14d06",
-      pay_method: "card",
-      merchant_uid: merchantUid,
-      name: "녹턴 컴퍼스 VIP 심층 신탁 리포트",
-      amount: 1000,
-      buyer_email: "guest@nocturnecompass.com",
-      buyer_name: "내담자",
-      buyer_tel: "010-0000-0000"
-    }, function (rsp) {
-      if (rsp.success) {
-        // ✦ 2. 결제 성공 즉시 브라우저에 결제 완료 티켓 발급!
-        sessionStorage.setItem('nocturne_paid', 'true');
-        sessionStorage.setItem('nocturne_paid_uid', rsp.merchant_uid);
+        // 기존 계좌 안내 카드 숨기기
+        const infoCard = sealedModal.querySelector('.sealed-info-card');
+        if (infoCard) infoCard.style.display = 'none';
 
-        alert("결제가 정상 확인되었습니다. 심층 질문 작성으로 이동합니다.");
-        goToStep2Questions();
-      } else {
-        alert("결제가 완료되지 않았습니다: " + rsp.error_msg);
-      }
-    });
+        // 하단 버튼 문구 변경 및 다음 단계(질문 작성) 함수 연결
+        const actionBtn = sealedModal.querySelector('.btn-action');
+        if (actionBtn) {
+            actionBtn.innerText = "신탁을 얻기 위한 질문 작성하기 ▶";
+            actionBtn.onclick = function() {
+                sealedModal.style.display = 'none';
+                if (typeof goToStep2Questions === 'function') {
+                    goToStep2Questions();
+                }
+            };
+        }
 
-  } catch (error) {
-    console.error("결제 호출 오류:", error);
-    alert("결제창 호출 중 문제가 발생했습니다.");
-  }
+        // 모달 다시 띄우기
+        sealedModal.style.display = 'flex';
+    }
 }
 function goToStep2Questions() {  
     document.getElementById('vipStep1Section').style.display = 'none';
